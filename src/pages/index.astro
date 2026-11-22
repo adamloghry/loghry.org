@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import '../styles/layers.css';
+import { SITE, BUILD } from '../site';
+import dayAvif from '../assets/sky/plate_day.avif?url';
+import dayWebp from '../assets/sky/plate_day.webp?url';
+---
+<Base>
+<main id="hero" data-build-date={BUILD.date} data-build-commit={BUILD.commit} data-photo-credit={SITE.photo.credit} data-photo-url={SITE.photo.url}>
+  <div class="static">
+    <noscript>
+      <picture>
+        <source type="image/avif" srcset={dayAvif}>
+        <img src={dayWebp} alt="Aerial view south over Lake Union toward downtown Seattle">
+      </picture>
+    </noscript>
+    <div class="lk-scrim"></div>
+    <div class="lk-words">
+      <h1>Loghry</h1>
+      <p class="lk-tag">The Loghry family lives in Seattle.</p>
+    </div>
+  </div>
+</main>
+<section id="almanac" aria-label="Today's light and weather over Lake Union">
+  <noscript>
+    <p class="alm-fallback">With scripts on, this page follows Seattle's clock: the photo shifts with the sun, the moon and the season's typical weather. Photo by <a href={SITE.photo.url}>{SITE.photo.credit} on Unsplash</a>.</p>
+  </noscript>
+</section>
+<script>
+  import '../sky/main.ts';
+</script>
+</Base>

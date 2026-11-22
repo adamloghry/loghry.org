@@ -1,0 +1,66 @@
+/* Photo layers: masks, textures and motion. Generated from the design canvas; image files come from bake/. */
+@keyframes lk-drift{0%{transform:scale(1.04) translate(0,0)}100%{transform:scale(1.10) translate(-1.5%,-1%)}}
+@keyframes lk-pan{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes lk-fog{0%{transform:translate(0,0) scale(1.02)}100%{transform:translate(-2%,1%) scale(1.06)}}
+@keyframes lk-fall256{from{transform:translateY(0)}to{transform:translateY(256px)}}
+@keyframes lk-fall384{from{transform:translateY(0)}to{transform:translateY(384px)}}
+@keyframes lk-fall512{from{transform:translateY(0)}to{transform:translateY(512px)}}
+@keyframes lk-in{from{offset-distance:0%;transform:scale(.28)}to{offset-distance:100%;transform:scale(1.15)}}
+@keyframes lk-out{from{offset-distance:0%;transform:scale(1.15)}to{offset-distance:100%;transform:scale(.28)}}
+@keyframes lk-ferry{0%{offset-distance:0%;opacity:0}3%{opacity:1}55%{offset-distance:100%;opacity:1}56%,100%{offset-distance:100%;opacity:0}}
+@keyframes lk-blink{0%,46%{opacity:1}50%,96%{opacity:.08}100%{opacity:1}}
+@keyframes lk-ripx{from{-webkit-mask-position:0 0;mask-position:0 0}to{-webkit-mask-position:-384px 0;mask-position:-384px 0}}
+@keyframes lk-glitx{from{transform:translateX(-150px)}to{transform:translateX(0)}}
+@keyframes lk-pulse{0%,100%{opacity:0}50%{opacity:1}}
+@keyframes lk-loop{from{offset-distance:0%}to{offset-distance:100%}}
+/* seaplane: one 10-minute cycle, on screen for the first 48 s */
+@keyframes lk-takeoff{0%{offset-distance:0%;opacity:0;transform:scale(1);animation-timing-function:cubic-bezier(.55,0,.9,.55)}.4%{opacity:1}7.4%{opacity:1}8%{offset-distance:100%;opacity:0;transform:scale(.55)}100%{offset-distance:100%;opacity:0;transform:scale(.55)}}
+@keyframes lk-landing{0%{offset-distance:0%;opacity:0;transform:scale(1.5);animation-timing-function:cubic-bezier(.1,.45,.45,1)}.4%{opacity:1}7.4%{opacity:1}8%{offset-distance:100%;opacity:0;transform:scale(.8)}100%{offset-distance:100%;opacity:0;transform:scale(.8)}}
+@keyframes lk-wake-to{0%,4.6%{opacity:1}5.4%,100%{opacity:0}}
+@keyframes lk-wake-ld{0%,3%{opacity:0}3.8%,8%{opacity:1}100%{opacity:1}}
+@keyframes lk-burst{0%{transform:scale(.04);opacity:0}3%{opacity:1}26%{transform:scale(1);opacity:1}40%{transform:scale(1.08) translateY(10px);opacity:0}100%{transform:scale(1.08) translateY(10px);opacity:0}}
+@keyframes lk-flash{0%,100%{opacity:.25}40%{opacity:1}70%{opacity:.5}}
+
+.lk-anim .lk-stage{animation:lk-drift 90s ease-in-out infinite alternate}
+.lk-anim .lk-pan{animation:lk-pan 260s linear infinite}
+.lk-anim .lk-pan-b{animation:lk-pan 420s linear infinite}
+.lk-anim .lk-veilpan{animation:lk-pan 55s linear infinite}
+.lk-anim .lk-fogmove{animation:lk-fog 80s ease-in-out infinite alternate}
+.lk-anim .lk-blink{animation:lk-blink 3s steps(1,end) infinite}
+.lk-anim .lk-f256{animation:lk-fall256 1.15s linear infinite}
+.lk-anim .lk-f384{animation:lk-fall384 .62s linear infinite}
+.lk-anim .lk-f512{animation:lk-fall512 .36s linear infinite}
+.lk-anim .lk-s256{animation:lk-fall256 7s linear infinite}
+.lk-anim .lk-s384{animation:lk-fall384 4.6s linear infinite}
+.lk-anim .lk-rip{animation:lk-ripx 46s steps(40) infinite}
+.lk-anim .lk-glit{animation:lk-glitx 5s steps(10) infinite}
+.lk-anim .lk-ring-a{animation:lk-pulse 1.4s steps(4) infinite}
+.lk-anim .lk-ring-b{animation:lk-pulse 1.4s steps(4) infinite;animation-delay:-.7s}
+.lk-anim .lk-flash{animation:lk-flash 1.3s ease-in-out infinite}
+.lk-still .lk-car{display:none}
+.lk-paused *{animation-play-state:paused !important}
+
+.lk-plate,.lk-fade{transition:opacity 2.4s ease, background-color 2.4s ease}
+.lk-ui{transition:opacity .5s ease}
+
+.lk-fogmask{-webkit-mask-image:url(../assets/sky/fog_a.webp);mask-image:url(../assets/sky/fog_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%}
+.lk-cloud1{-webkit-mask-image:url(../assets/sky/cloud1_t.webp);mask-image:url(../assets/sky/cloud1_t.webp);-webkit-mask-size:50% 100%;mask-size:50% 100%;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
+.lk-cloud2{-webkit-mask-image:url(../assets/sky/cloud2_t.webp);mask-image:url(../assets/sky/cloud2_t.webp);-webkit-mask-size:50% 100%;mask-size:50% 100%;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
+.lk-rv{-webkit-mask-image:url(../assets/sky/rain_veil.webp);mask-image:url(../assets/sky/rain_veil.webp);-webkit-mask-size:50% 100%;mask-size:50% 100%;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
+.lk-water{-webkit-mask-image:url(../assets/sky/water_a.webp);mask-image:url(../assets/sky/water_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.lk-lake{-webkit-mask-image:url(../assets/sky/lake_a.webp);mask-image:url(../assets/sky/lake_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.lk-foliage{-webkit-mask-image:url(../assets/sky/foliage_a.webp);mask-image:url(../assets/sky/foliage_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.lk-snowcover{-webkit-mask-image:url(../assets/sky/snow_a.webp);mask-image:url(../assets/sky/snow_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.lk-rip{-webkit-mask-image:url(../assets/sky/ripple_a.webp);mask-image:url(../assets/sky/ripple_a.webp);-webkit-mask-size:384px 110px;mask-size:384px 110px}
+.lk-glit{-webkit-mask-image:url(../assets/sky/glitter_a.webp);mask-image:url(../assets/sky/glitter_a.webp);-webkit-mask-size:150px 46px;mask-size:150px 46px}
+
+.lk-label{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,226,186,.92);text-shadow:0 0 6px rgba(0,0,0,.9),0 0 14px rgba(255,170,80,.35)}
+.lk-label-cool{color:rgba(160,232,238,.9);text-shadow:0 0 6px rgba(0,0,0,.9),0 0 14px rgba(80,200,210,.35)}
+
+@media (prefers-reduced-motion: reduce){.lk-anim *{animation:none !important}.lk-car{display:none}}
+/* rain and snow as plain tiled pictures (no masks), so they move as one cheap layer */
+.lk-rfb{background-image:url(../assets/sky/rain_far.webp);background-size:256px 256px;will-change:transform}
+.lk-rmb{background-image:url(../assets/sky/rain_mid.webp);background-size:384px 384px;will-change:transform}
+.lk-rnb{background-image:url(../assets/sky/rain_near.webp);background-size:512px 512px;will-change:transform}
+.lk-flb{background-image:url(../assets/sky/flakes_a.webp);background-size:256px 256px;will-change:transform}
+.lk-flb2{background-image:url(../assets/sky/flakes_a.webp);background-size:384px 384px;will-change:transform}

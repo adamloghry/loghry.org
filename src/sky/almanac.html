@@ -1,0 +1,73 @@
+<div class="alm">
+
+<section style="display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #a39d93">
+<span>Today over Lake Union</span>
+<span>{{dateLabel}}</span>
+</div>
+<div class="alm-stats">
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #a39d93">Sunrise</span><span style="font-size: clamp(34px, 4.6vw, 64px); font-weight: 300; line-height: 1">{{sunrise}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #a39d93">Sunset</span><span style="font-size: clamp(34px, 4.6vw, 64px); font-weight: 300; line-height: 1">{{sunset}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #a39d93">Daylight</span><span style="font-size: clamp(34px, 4.6vw, 64px); font-weight: 300; line-height: 1">{{dayLen}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #a39d93">Since yesterday</span><span style="font-size: clamp(34px, 4.6vw, 64px); font-weight: 300; line-height: 1; font-style: italic">{{delta}}</span></div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px">
+<div aria-hidden="true" style="position: relative; height: 56px; border-radius: 6px; background: {{dayGradient}}">
+<div style="{{nowStyle}}"></div>
+</div>
+<div style="position: relative; height: 16px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: #a39d93">
+<span style="position: absolute; left: 0">00:00</span>
+<span style="position: absolute; left: 25%; transform: translateX(-50%)">06:00</span>
+<span style="position: absolute; left: 50%; transform: translateX(-50%)">12:00</span>
+<span style="position: absolute; left: 75%; transform: translateX(-50%)">18:00</span>
+<span style="position: absolute; right: 0">24:00</span>
+</div>
+<p style="margin: 4px 0 0; font-size: clamp(17px, 1.5vw, 20px); line-height: 1.45; color: #cfc8bc; max-width: 900px">The sun climbs to <em>{{maxElev}}</em> today. Civil twilight runs {{civilDawn}}–{{civilDusk}}; the band above is the photo's light, hour by hour.</p>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 16px">
+<h2 style="margin: 0; font-weight: 300; font-size: clamp(28px, 3vw, 40px); letter-spacing: -0.01em">The year in Seattle's daylight</h2>
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #a39d93">{{yearRange}}</span>
+</div>
+<div role="img" aria-label="Bar chart of day length through the year. {{yearRange}}" style="height: 170px; display: flex; align-items: flex-end; gap: clamp(1px, .2vw, 3px); border-bottom: 1px solid rgba(239,233,222,.22)">
+<sc-for list="{{bars}}" as="b">
+<div style="{{b.style}}"></div>
+</sc-for>
+</div>
+<div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: #a39d93">
+<span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span><span>Dec</span>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 16px">
+<h2 style="margin: 0; font-weight: 300; font-size: clamp(28px, 3vw, 40px); letter-spacing: -0.01em">A typical {{monthName}}</h2>
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #a39d93">Sea-Tac normals, {{normalsPeriod}}</span>
+</div>
+<p style="margin: 0; font-size: clamp(17px, 1.5vw, 20px); line-height: 1.45; color: #cfc8bc; max-width: 980px">{{typicalLine}}</p>
+<div role="img" aria-label="Bar chart by month: share of daylight hours with sun, and days with measurable rain" style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: clamp(3px, .7vw, 10px); align-items: end">
+<sc-for list="{{months}}" as="m">
+<div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch">
+<div style="height: 110px; display: flex; align-items: flex-end; gap: 3px">
+<div style="{{m.sunStyle}}"></div>
+<div style="{{m.rainStyle}}"></div>
+</div>
+<span style="{{m.labelStyle}}"><span class="alm-m1" aria-hidden="true">{{m.l1}}</span><span class="alm-m3">{{m.label}}</span></span>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 8px 24px; flex-wrap: wrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: #a39d93">
+<span style="display: flex; gap: 8px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 2px; background: #e8b48a"></span>Share of daylight hours with sun</span>
+<span style="display: flex; gap: 8px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 2px; background: #7f97b2"></span>Days with measurable rain</span>
+</div>
+</section>
+
+<footer style="margin-top: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px 32px; padding-top: 28px; border-top: 1px solid rgba(239,233,222,.16); font-size: 17px; line-height: 1.45; color: #b8b1a6">
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-family: &quot;JetBrains Mono&quot;, ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(143, 137, 127)">Sun and moon</span><span>Computed in your browser from the time in Seattle. The moon's phase sets how bright the night is.</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8f897f">Sky</span><span>A typical sky for this hour, drawn from Seattle's climate normals: cloud, rain, fog, the odd snow day, a hazy late-summer evening. Even a clear day keeps a few clouds. Everyone sees the same sky at the same hour. It is not a forecast.</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-family: &quot;JetBrains Mono&quot;, ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(143, 137, 127)">Photo</span><span>One aerial frame by <a href="{{photoUrl}}" rel="noopener">{{photoCredit}} on Unsplash</a>, graded offline into the lights of day. Street lights follow Wallingford's grid, I-5 and the shore.</span></div>
+</footer>
+</div>

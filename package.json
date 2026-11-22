@@ -1,0 +1,36 @@
+{
+  "name": "loghry-org",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "prebuild": "npm test && node tests/upkeep.mjs",
+    "build": "astro build",
+    "preview": "astro preview --port 4321",
+    "check": "astro check",
+    "test": "TZ=America/Los_Angeles vitest run && TZ=Asia/Tokyo vitest run && TZ=UTC vitest run",
+    "test:ui": "node tests/ui/run.mjs",
+    "verify": "node --test scripts/*.test.mjs && node scripts/verify-static.mjs && node scripts/verify.mjs",
+    "check:upkeep": "node tests/upkeep.mjs"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.6",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/newsreader": "^5.3.0",
+    "astro": "^7.4.13"
+  },
+  "devDependencies": {
+    "@antithesishq/bombadil": "0.8.0",
+    "@astrojs/check": "^0.9.12",
+    "@axe-core/playwright": "^4.14.0",
+    "@types/node": "^26.6.6",
+    "jsdom": "^27.0.0",
+    "playwright": "1.64.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.0.0"
+  }
+}

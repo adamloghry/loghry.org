@@ -1,0 +1,184 @@
+<div class="{{rootClass}}">
+<div style="{{stageStyle}}">
+<div class="lk-stage" style="position: absolute; inset: 0; transform-origin: 55% 35%">
+<sc-if value="{{show.p0}}"><picture><source type="image/avif" srcset="{{a.plate_day_avif}}"><img class="lk-plate" src="{{a.plate_day}}" alt="Aerial view south over Lake Union toward downtown Seattle" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: {{op0}}"></picture></sc-if>
+<sc-if value="{{show.p1}}"><picture><source type="image/avif" srcset="{{a.plate_golden_am_avif}}"><img class="lk-plate" src="{{a.plate_golden_am}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: {{op1}}"></picture></sc-if>
+<sc-if value="{{show.p2}}"><picture><source type="image/avif" srcset="{{a.plate_golden_pm_avif}}"><img class="lk-plate" src="{{a.plate_golden_pm}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: {{op2}}"></picture></sc-if>
+<sc-if value="{{show.p3}}"><picture><source type="image/avif" srcset="{{a.plate_blue_avif}}"><img class="lk-plate" src="{{a.plate_blue}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: {{op3}}"></picture></sc-if>
+<sc-if value="{{show.p3L}}"><picture><source type="image/avif" srcset="{{a.plate_blue_lit_avif}}"><img class="lk-plate" src="{{a.plate_blue_lit}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: {{op3L}}"></picture></sc-if>
+<sc-if value="{{show.p4L}}"><picture><source type="image/avif" srcset="{{a.plate_night_late_avif}}"><img class="lk-plate" src="{{a.plate_night_late}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: {{op4}}"></picture></sc-if>
+<sc-if value="{{show.p4E}}"><picture><source type="image/avif" srcset="{{a.plate_night_eve_avif}}"><img class="lk-plate" src="{{a.plate_night_eve}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: {{op4E}}"></picture></sc-if>
+
+<sc-if value="{{show.foliage}}"><div class="lk-foliage lk-fade" aria-hidden="true" style="position: absolute; inset: 0; mix-blend-mode: color; background-color: {{foliageColor}}; opacity: {{foliageOpacity}}"></div></sc-if>
+<sc-if value="{{show.snow}}"><div class="lk-snowcover lk-fade" aria-hidden="true" style="position: absolute; inset: 0; background-color: {{snowColor}}; opacity: {{snowOpacity}}"></div></sc-if>
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; background-color: {{flatColor}}; opacity: {{flatOpacity}}"></div>
+<sc-if value="{{show.haze}}"><div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, {{hazeColor}} 0%, {{hazeColor}} 30%, rgba(0,0,0,0) 100%), {{hazeColor}}; opacity: {{hazeOpacity}}"></div></sc-if>
+<sc-if value="{{show.sun}}"><div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; background: {{sunGlow}}; opacity: {{sunGlowOpacity}}"></div></sc-if>
+<sc-if value="{{show.moonGlow}}"><div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; background: {{moonGlow}}; opacity: {{moonGlowOpacity}}"></div></sc-if>
+
+<sc-if value="{{show.rainbow}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{rainbowOpacity}}; -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 34%, rgba(0,0,0,0) 56%); mask-image: linear-gradient(180deg, #000 0%, #000 34%, rgba(0,0,0,0) 56%)"><div style="{{rainbowStyle}}"></div></div>
+</sc-if>
+<sc-if value="{{show.ripples}}">
+<div class="lk-water lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{rippleOpacity}}">
+<div class="lk-rip lk-fade" style="position: absolute; left: 0; right: 0; top: 13%; height: 46%; background-color: {{rippleColor}}; animation-play-state: {{ripplePlay}}"></div>
+</div>
+</sc-if>
+<sc-if value="{{show.glitter}}">
+<div class="lk-water lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{glitterOpacity}}">
+<div style="position: absolute; inset: 0; -webkit-mask-image: {{glitterGradient}}; mask-image: {{glitterGradient}}"><div class="lk-glit" style="position: absolute; left: -150px; top: 0; bottom: 0; width: 1590px; will-change: transform; background-color: {{glitterColor}}"></div></div>
+</div>
+</sc-if>
+<sc-if value="{{show.rings}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{ringsOpacity}}">
+<img class="lk-ring-a" src="{{a.ringsw1}}" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%">
+<img class="lk-ring-b" src="{{a.ringsw2}}" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%">
+</div>
+</sc-if>
+
+<sc-if value="{{show.lights}}">
+<sc-if value="{{show.holiday}}"><picture><source type="image/avif" srcset="{{a.holiday_avif}}"><img class="lk-plate" src="{{a.holiday}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; opacity: {{holidayOpacity}}"></picture></sc-if>
+<sc-if value="{{show.bloom}}"><img class="lk-plate" src="{{a.bloom}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; opacity: {{bloomOpacity}}"></sc-if>
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; background: radial-gradient(38% 16% at 50% 13%, rgba(255,176,120,.3), rgba(255,176,120,0)); opacity: {{skyGlowOpacity}}"></div>
+</sc-if>
+<sc-if value="{{show.drawn}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6,8,14,.42) 0%, rgba(6,8,14,.34) 100%); opacity: {{drawnOpacity}}"></div>
+<img class="lk-plate" src="{{a.linework}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; opacity: {{drawnOpacity}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{drawnOpacity}}">
+<sc-for list="{{labels}}" as="l">
+<span class="{{l.cls}}" style="{{l.style}}">{{l.text}}</span>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{show.boats}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{boatsOpacity}}">
+<sc-for list="{{boats}}" as="b">
+<span style="{{b.style}}"><span style="{{b.wake}}"></span><span style="{{b.hull}}"></span></span>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{show.sails}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{sailsOpacity}}">
+<sc-for list="{{sails}}" as="b">
+<span style="{{b.style}}"><span style="{{b.sail}}"></span></span>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{show.plane}}">
+<span aria-hidden="true" style="{{planeStyle}}">
+<span style="{{planeWake}}"></span>
+<svg viewBox="-8 -8 16 16" width="16" height="16" style="position: absolute; left: -8px; top: -8px; overflow: visible; filter: drop-shadow(0 2px 2px rgba(0,0,0,.45))"><path d="M-6 0 L6 0 M1.5 -6 L1.5 6 M-5 -2 L-5 2" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"></path></svg>
+</span>
+</sc-if>
+<sc-if value="{{show.cars}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{carsOpacity}}">
+<sc-for list="{{cars}}" as="c">
+<span class="lk-car" style="{{c.style}}"></span>
+</sc-for>
+</div>
+<span class="lk-car" aria-hidden="true" style="{{ferryStyle}}"></span>
+</sc-if>
+<sc-if value="{{show.beacons}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{beaconOpacity}}">
+<span class="lk-blink" style="position: absolute; left: 629px; top: 222px; width: 4px; height: 4px; border-radius: 50%; background: #ff3b2f; box-shadow: 0 0 8px 3px rgba(255,59,47,.7)"></span>
+<span class="lk-blink" style="position: absolute; left: 1077px; top: 251px; width: 4px; height: 4px; border-radius: 50%; background: #ff3b2f; box-shadow: 0 0 8px 3px rgba(255,59,47,.7); animation-delay: -1.1s"></span>
+<span class="lk-blink" style="position: absolute; left: 730px; top: 239px; width: 3px; height: 3px; border-radius: 50%; background: #ff3b2f; box-shadow: 0 0 6px 2px rgba(255,59,47,.6); animation-delay: -2.2s"></span>
+</div>
+</sc-if>
+<sc-if value="{{show.fireworks}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; opacity: {{fireworksOpacity}}">
+<sc-if value="{{show.fwLake}}">
+<div class="lk-lake" style="position: absolute; inset: 0; mix-blend-mode: screen"><div class="lk-flash" style="position: absolute; inset: 0; background: radial-gradient(13% 10% at 54% 37%, rgba(255,214,170,.5), rgba(255,150,120,.16) 55%, rgba(255,150,120,0))"></div></div>
+</sc-if>
+<sc-for list="{{bursts}}" as="b">
+<span style="{{b.style}}"></span>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{show.stars}}"><img class="lk-plate" src="{{a.stars_a}}" alt="" aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 1440px; height: 200px; opacity: {{starsOpacity}}"></sc-if>
+<sc-if value="{{show.fog}}">
+<div class="lk-fade lk-fogmove" aria-hidden="true" style="position: absolute; inset: -2%; opacity: {{fogOpacity}}">
+<div class="lk-fogmask lk-fade" style="position: absolute; inset: 0; background-color: {{fogColor}}"></div>
+</div>
+</sc-if>
+</div>
+</div>
+
+<sc-if value="{{show.cloud1}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{cloud1Opacity}}">
+<div class="lk-pan" style="position: absolute; left: 0; top: -6%; width: 200%; height: 70%; animation-duration: {{cloudDur1}}; animation-direction: {{cloudDir}}">
+<div class="lk-cloud1 lk-fade" style="position: absolute; inset: 0; background-color: {{cloudColor}}"></div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{show.cloud2}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{cloud2Opacity}}">
+<div class="lk-pan-b" style="position: absolute; left: 0; top: 30%; width: 200%; height: 80%; animation-duration: {{cloudDur2}}; animation-direction: {{cloudDir}}">
+<div class="lk-cloud2 lk-fade" style="position: absolute; inset: 0; background-color: {{cloudColor}}"></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{show.rain}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{veilOpacity}}">
+<div class="lk-veilpan" style="position: absolute; left: 0; top: 0; width: 200%; height: 100%; animation-direction: {{cloudDir}}">
+<div class="lk-rv lk-fade" style="position: absolute; inset: 0; background-color: {{veilColor}}"></div>
+</div>
+</div>
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{rainOpacity}}">
+<div style="{{rainTilt}}">
+<div class="lk-rfb lk-f256" style="position: absolute; left: 0; right: 0; top: -256px; bottom: 0; opacity: .5"></div>
+<div class="lk-rmb lk-f384" style="position: absolute; left: 0; right: 0; top: -384px; bottom: 0; opacity: .65"></div>
+<div class="lk-rnb lk-f512" style="position: absolute; left: 0; right: 0; top: -512px; bottom: 0; opacity: .5"></div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{show.flakes}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{flakesOpacity}}">
+<div style="{{snowTilt}}">
+<div class="lk-flb lk-s256" style="position: absolute; left: 0; right: 0; top: -256px; bottom: 0; opacity: .8"></div>
+<div class="lk-flb2 lk-s384" style="position: absolute; left: 0; right: 0; top: -384px; bottom: 0"></div>
+</div>
+</div>
+</sc-if>
+
+<div class="lk-ui lk-scrim" aria-hidden="true" style="opacity: {{scrimOpacity}}"></div>
+
+<div class="lk-top">
+<span class="lk-ui lk-mark" style="opacity: {{textOpacity}}">loghry.org</span>
+<button type="button" class="lk-btn lk-chip" onClick="{{toggleText}}" aria-pressed="{{hidePressed}}" title="{{hideHint}}">47.6456° N · 122.3344° W<span class="lk-wide"> · Lake Union</span><span class="lk-sr">. {{hideHint}}</span></button>
+</div>
+
+<div class="lk-bottom">
+<div class="lk-ui lk-words" style="opacity: {{textOpacity}}; visibility: {{textVisibility}}">
+<h1>Loghry</h1>
+<p class="lk-tag">The Loghry family lives in Seattle.</p>
+<sc-if value="{{scrubOpen}}">
+<div class="lk-scrub">
+<label><span>Seattle time</span><input class="lk-range" type="range" min="0" max="1435" step="5" value="{{minuteVal}}" aria-valuetext="{{clockShort}}" onChange="{{onMinute}}"></label>
+<button type="button" class="lk-btn lk-link" onClick="{{backToNow}}">back to now</button>
+</div>
+</sc-if>
+<div class="lk-status" data-test="status">
+<span data-test="clock">{{clock}}</span>
+<span>{{sunLine}}</span>
+<span>{{skyLine}}</span>
+<sc-if value="{{showMoonLine}}"><span>{{moonLine}}</span></sc-if>
+<button type="button" class="lk-btn lk-link" onClick="{{toggleScrub}}" aria-expanded="{{scrubExpanded}}">{{scrubLabel}}</button>
+</div>
+</div>
+<div class="lk-gear">
+<sc-if value="{{gearOpen}}">
+<div class="lk-panel" role="group" aria-label="About this page" data-test="panel">
+<sc-if value="{{hasRare}}"><span class="lk-rare">now: {{rareLine}}</span></sc-if>
+<button type="button" class="lk-btn lk-link" onClick="{{copyLink}}">{{copyLabel}}</button>
+<span>photo: <a class="lk-link" href="{{photoUrl}}" rel="noopener">{{photoCredit}} on Unsplash</a></span>
+<span>built {{buildDate}} · {{buildCommit}} · normals 1991–2020</span>
+</div>
+</sc-if>
+<sc-if value="{{rareDot}}"><span class="lk-dot" aria-hidden="true"></span></sc-if>
+<button type="button" class="lk-btn lk-chip" onClick="{{toggleGear}}" aria-expanded="{{gearExpanded}}" aria-label="{{gearLabel}}" title="{{gearLabel}}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 12 6.5 20.5a2.1 2.1 0 0 1-3-3L12 9"></path><path d="m17.6 15 4.4-4.4"></path><path d="m21 11.5-1.9-1.9a2 2 0 0 1-.6-1.4V7l-2.3-2.3a6 6 0 0 0-4.2-1.7H9l.9.8A6 6 0 0 1 12 8.4V10l2 2h1.2a2 2 0 0 1 1.4.6l1.9 1.9"></path></svg></button>
+</div>
+</div>
+</div>

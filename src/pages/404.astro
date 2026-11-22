@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import '../styles/layers.css';
+import dayAvif from '../assets/sky/plate_night_late.avif?url';
+import dayWebp from '../assets/sky/plate_night_late.webp?url';
+---
+<Base title="Not found · Loghry" description="That page is not here." noindex>
+<main id="hero">
+  <div class="static">
+    <picture>
+      <source type="image/avif" srcset={dayAvif}>
+      <img src={dayWebp} alt="Aerial view south over Lake Union at night">
+    </picture>
+    <div class="lk-scrim"></div>
+    <div class="lk-words">
+      <h1>Not here</h1>
+      <p class="lk-tag">That page does not exist. <a class="lk-link" href="/">Back to the lake.</a></p>
+    </div>
+  </div>
+</main>
+</Base>

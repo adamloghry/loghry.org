@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.astro/
+result
+result-*
+bake/scripts/out/
+__pycache__/
+*.pyc
+.DS_Store
+.devenv/
+.direnv/
+.pre-commit-config.yaml
+tmp/
+.superpowers/
+.claude/

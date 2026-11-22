@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://loghry.org/sitemap-index.xml

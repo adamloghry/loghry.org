@@ -1,11 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
   "schedule": ["before 6am on monday"],
   "prConcurrentLimit": 3,
-  "nix": {
-    "enabled": true
-  },
+  "nix": { "enabled": true },
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 6am on monday"]
@@ -16,6 +14,12 @@
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "npm devDependencies (minor + patch)"
+    },
+    {
+      "description": "playwright must equal nixpkgs playwright-driver.version (browsers come from Nix); bump by hand after flake.lock updates",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["playwright"],
+      "enabled": false
     }
   ]
 }

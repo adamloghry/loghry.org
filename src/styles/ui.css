@@ -13,10 +13,9 @@ body{font-family:'Newsreader',Georgia,serif;-webkit-text-size-adjust:100%}
 .lk-link{text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(239,233,222,.55)}
 a.lk-link{color:inherit}
 .lk-chip{background:rgba(10,12,16,.82);padding:0 12px;border-radius:8px}
-.lk-mark{background:rgba(10,12,16,.82);padding:8px 12px;border-radius:8px}
 .lk-range{accent-color:#efe9de}
 
-.lk-top{position:absolute;left:var(--pad);right:var(--pad);top:clamp(10px,2.4vh,30px);display:flex;justify-content:space-between;align-items:center;gap:12px;font:400 12px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#f4efe6;text-shadow:0 1px 3px rgba(0,0,0,.75)}
+.lk-top{position:absolute;left:var(--pad);right:var(--pad);top:clamp(10px,2.4vh,30px);display:flex;justify-content:flex-end;align-items:center;gap:12px;font:400 12px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#f4efe6;text-shadow:0 1px 3px rgba(0,0,0,.75)}
 .lk-bottom{position:absolute;left:var(--pad);right:var(--pad);bottom:clamp(10px,2.6vh,30px);display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
 .lk-words{min-width:0;flex:1 1 auto;display:flex;flex-direction:column;align-items:flex-start}
 .lk-words h1{margin:0;font-weight:300;font-size:clamp(76px,min(11.6vw,21vh),168px);line-height:.86;letter-spacing:-.035em;color:#f4efe6;text-shadow:0 2px 30px rgba(0,0,0,.35)}

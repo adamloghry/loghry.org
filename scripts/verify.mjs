@@ -72,6 +72,14 @@ for (const state of STATES.filter((s) => want(s.name))) {
   if (state.sky) ok(id + ' sky', state.sky.test(r.status || ''), `status names the sky: ${(r.status || '').replace(/\s+/g, ' ').slice(0, 90)}`);
   if (state.clock) ok(id + ' clock', state.clock.test(await clockText(page)), 'clock shows the event');
   if (state.js !== false && !state.path) ok(id + ' seattle', /^\d{1,2}:\d\d (AM|PM) P[SD]T/.test(await clockText(page)), 'clock is Seattle time');
+  if (state.js !== false && !state.path) {
+    // Owner decision 2026-11-22: no "loghry.org" wordmark top left; the coordinates chip stays top right.
+    const top = await page.evaluate(() => {
+      const bar = document.querySelector('.lk-top'), chip = document.querySelector('.lk-top > button');
+      return { mark: !!document.querySelector('.lk-mark'), text: bar.textContent, gap: bar.getBoundingClientRect().right - chip.getBoundingClientRect().right };
+    });
+    ok(id + ' top-bar', !top.mark && !/loghry\.org/i.test(top.text) && Math.abs(top.gap) <= 1, `no wordmark; chip flush right (${top.gap.toFixed(1)}px)`);
+  }
   if (state.open) ok(id + ' panel', await page.locator('[data-test=panel]').isVisible(), 'panel open');
   if (state.js === false) {
     const img = await page.evaluate(() => { const i = document.querySelector('noscript ~ * img, picture img, img'); return i ? { w: i.naturalWidth, vis: i.getBoundingClientRect().width > 0 } : null; });
@@ -185,7 +193,7 @@ if (want('contrast')) {
     const { ctx, page } = await open(state, { reduced: true });
     const labels = await page.evaluate(() => {
       const out = [];
-      for (const el of document.querySelectorAll('.lk-root h1, .lk-tag, [data-test=status] span, [data-test=status] button, .lk-top .lk-mark, .lk-top button')) {
+      for (const el of document.querySelectorAll('.lk-root h1, .lk-tag, [data-test=status] span, [data-test=status] button, .lk-top button')) {
         const r = el.getBoundingClientRect(); if (!r.width || !r.height || !el.textContent.trim()) continue;
         let a = 1; for (let p = el; p; p = p.parentElement) a *= +getComputedStyle(p).opacity;
         const m = getComputedStyle(el).color.match(/[\d.]+/g).map(Number);

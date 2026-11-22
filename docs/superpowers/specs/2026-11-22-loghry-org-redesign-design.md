@@ -238,6 +238,12 @@ do not push.
   `humans.txt` may name Adam Loghry (already public on akl.dev). The static
   check greps for akl.io, analytics and keybase, not for names.
 
+## Owner changes after the build
+
+- 2026-11-22: drop the "loghry.org" wordmark from the top left; the
+  coordinates chip stays top right (`.lk-top` is `flex-end`). Asserted per
+  state by `verify.mjs` (`top-bar`).
+
 ## Left to the builder
 
 - Exact Astro 7 / vitest 4 breakages and their minimal fixes (keep handoff

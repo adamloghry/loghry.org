@@ -5,7 +5,8 @@ Lake Union is redrawn for the hour, season and *typical* weather it is in Seattl
 analytics, no third-party requests. `npm run build` (or `nix build`) produces `dist/`.
 
 The design authority is `docs/handoff/README.md` (the delivered handoff; its "Rules that must keep holding" are
-binding). Decisions that extend or override it are in
+binding). Decisions that extend or override it (including the owner's later changes, e.g. no top-left
+wordmark) are in
 `docs/superpowers/specs/2026-11-22-loghry-org-redesign-design.md`. Do not change copy, layout, the model maths,
 the baked layers or their tuning without the owner.
 

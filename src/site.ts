@@ -6,9 +6,16 @@ export const SITE = {
   photo: { credit: 'Ryan Wilson', url: 'https://unsplash.com/photos/aerial-photography-of-city-during-daytime-HkF6feHrGBE' },
 };
 
-// The Nix flake passes these in; `npm run build` on its own falls back to today's date and "dev".
-const raw = process.env.LOGHRY_BUILD_DATE || new Date().toISOString().slice(0, 10).replace(/-/g, '');
-export const BUILD = {
-  date: raw.length >= 8 && !raw.includes('-') ? `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}` : raw,
-  commit: process.env.LOGHRY_COMMIT || 'dev',
-};
+type Env = Record<string, string | undefined>;
+
+// The build stamp in the bottom-right panel. The Nix flake passes LOGHRY_BUILD_DATE (YYYYMMDDHHMMSS, UTC) and
+// LOGHRY_COMMIT; Cloudflare Workers Builds runs plain `npm run build` and only sets WORKERS_CI_COMMIT_SHA.
+// Without either, the date is the build day (UTC) and the commit is "dev".
+export function buildStamp(env: Env, today: Date = new Date()): { date: string; commit: string } {
+  const raw = env.LOGHRY_BUILD_DATE || today.toISOString().slice(0, 10).replace(/-/g, '');
+  const date = raw.length >= 8 && !raw.includes('-') ? `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}` : raw;
+  const commit = env.LOGHRY_COMMIT || (env.WORKERS_CI_COMMIT_SHA || '').slice(0, 7) || 'dev';
+  return { date, commit };
+}
+
+export const BUILD = buildStamp(process.env);

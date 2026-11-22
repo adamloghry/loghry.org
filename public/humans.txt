@@ -1,0 +1,14 @@
+/* TEAM */
+Owner: Adam Loghry
+Site: https://akl.dev
+Location: Seattle, USA
+
+/* THANKS */
+Photo: Ryan Wilson, on Unsplash
+https://unsplash.com/photos/aerial-photography-of-city-during-daytime-HkF6feHrGBE
+
+/* SITE */
+Standards: HTML, CSS, TypeScript
+Components: Astro, Newsreader, JetBrains Mono
+Software: Nix
+Sitemap: https://loghry.org/sitemap-index.xml

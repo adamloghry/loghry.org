@@ -214,6 +214,7 @@
                   scripts.dev.exec = "npm run dev";
                   scripts.build.exec = "npm run build";
                   scripts.verify.exec = "npm run build && npm run verify";
+                  scripts.demo.exec = "npm run demo";
                   scripts.properties.exec = "npm run test:ui -- \"$@\"";
 
                   env = {
@@ -230,6 +231,7 @@
                     echo "  dev        - Astro dev server"
                     echo "  build      - unit tests (x3 time zones), upkeep, then dist/"
                     echo "  verify     - build, then static + Playwright acceptance checks"
+                    echo "  demo       - build, then serve dist/ with the production headers on :4329"
                     echo "  properties - Bombadil property tests on dist/ (pass a time limit, e.g. 5m)"
                     echo "  nix flake check --impure - build, astro check, static checks, treefmt"
                   '';

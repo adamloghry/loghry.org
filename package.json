@@ -11,6 +11,7 @@
     "prebuild": "npm test && node tests/upkeep.mjs",
     "build": "astro build",
     "preview": "astro preview --port 4321",
+    "demo": "npm run build && node scripts/serve.mjs dist",
     "check": "astro check",
     "test": "TZ=America/Los_Angeles vitest run && TZ=Asia/Tokyo vitest run && TZ=UTC vitest run",
     "test:ui": "node tests/ui/run.mjs",

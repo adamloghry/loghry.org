@@ -10,6 +10,7 @@ Photo: [Ryan Wilson on Unsplash](https://unsplash.com/photos/aerial-photography-
 nix develop --impure     # or: direnv allow
 npm run dev              # http://localhost:4321
 npm run demo             # build, then serve dist/ like production (CSP, 404) on http://127.0.0.1:4329
+HOST=$(tailscale ip -4) npm run demo   # the same, reachable on the tailnet only (the shell's `demo` does this)
 npm run build            # unit tests (3 time zones) + upkeep, then dist/
 npm run verify           # static + Playwright acceptance on dist/
 npm run test:ui          # Bombadil property tests on dist/

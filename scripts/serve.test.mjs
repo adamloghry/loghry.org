@@ -60,3 +60,8 @@ test('symlinks pointing outside dist are not followed', async () => {
 test('the query string and hash are ignored', async () => {
   assert.equal((await get('/?x=1')).status, 200);
 });
+test('binds the host it is given (the demo binds the Tailscale address, never 0.0.0.0 by default)', async () => {
+  const s = await serve(dist, 0, '127.0.0.1');
+  try { assert.equal(s.host, '127.0.0.1'); } finally { await s.close(); }
+  assert.equal(srv.host, '127.0.0.1', 'defaults to loopback');
+});

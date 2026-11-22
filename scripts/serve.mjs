@@ -26,7 +26,7 @@ export function parseHeaders(text) {
   return rules.map((r) => ({ ...r, re: new RegExp('^' + r.pattern.split('*').map((s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$') }));
 }
 
-export async function serve(dir, port = 0) {
+export async function serve(dir, port = 0, host = '127.0.0.1') {
   const root = await realpath(dir);
   let rules = [];
   try { rules = parseHeaders(await readFile(join(root, '_headers'), 'utf8')); } catch { /* no _headers */ }
@@ -57,12 +57,13 @@ export async function serve(dir, port = 0) {
     res.setHeader('content-type', TYPES[extname(file)] || 'application/octet-stream');
     res.end(await readFile(file));
   });
-  server.listen(port, '127.0.0.1');
+  server.listen(port, host);
   await once(server, 'listening');
-  return { port: server.address().port, close: () => new Promise((r) => server.close(r)) };
+  return { host: server.address().address, port: server.address().port, close: () => new Promise((r) => server.close(r)) };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const s = await serve(process.argv[2] || 'dist', Number(process.env.PORT || 4329));
-  console.log(`serving on http://127.0.0.1:${s.port}/`);
+  // HOST picks the interface, e.g. HOST=$(tailscale ip -4) to share a demo on the tailnet only. Loopback by default.
+  const s = await serve(process.argv[2] || 'dist', Number(process.env.PORT || 4329), process.env.HOST || '127.0.0.1');
+  console.log(`serving on http://${s.host.includes(':') ? `[${s.host}]` : s.host}:${s.port}/`);
 }

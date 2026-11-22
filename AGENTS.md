@@ -1,0 +1,90 @@
+# AGENTS.md
+
+Family landing page at https://loghry.org. An Astro 7 static site (SSG): one page plus a 404. One aerial photo of
+Lake Union is redrawn for the hour, season and *typical* weather it is in Seattle right now. No server, no API, no
+analytics, no third-party requests. `npm run build` (or `nix build`) produces `dist/`.
+
+The design authority is `docs/handoff/README.md` (the delivered handoff; its "Rules that must keep holding" are
+binding). Decisions that extend or override it are in
+`docs/superpowers/specs/2026-11-22-loghry-org-redesign-design.md`. Do not change copy, layout, the model maths,
+the baked layers or their tuning without the owner.
+
+## Layout
+
+- `src/pages/index.astro`, `src/pages/404.astro`, `src/layouts/Base.astro` - markup and head. The only script is
+  the processed `<script>import '../sky/main.ts'</script>`; do not add attributes to it (Astro then treats it as
+  inline, which the CSP blocks).
+- `src/sky/` - the page logic, as delivered: `model.ts` (Seattle clock, sun, moon, weather normals, calendar; pure),
+  `hero.ts|html` and `almanac.ts|html` (state -> template values; `// @ts-nocheck`), `view.ts` (the small template
+  runtime), `assets.ts`, `main.ts` (entry), `hooks.ts` (preview-hook parser).
+- `src/site.ts` - title, description, photo credit, `buildStamp()`.
+- `src/styles/` - `ui.css`, `layers.css`. `src/assets/sky/` - baked image layers, committed, never resized at build.
+- `public/` - served verbatim: `_headers` (CSP and caching), icons, `og.jpg`, `robots.txt`, `humans.txt`,
+  `llms.txt`, `site.webmanifest`. The sitemap comes from `@astrojs/sitemap`.
+- `bake/` - offline image pipeline (`nix run .#bake`); not an input of any build.
+- `tests/unit/` - vitest. `tests/ui/` - Bombadil spec and runner. `tests/upkeep.mjs` - yearly reminders.
+- `scripts/` - `verify-static.mjs` (no-browser checks on `dist/`), `verify.mjs` (Playwright acceptance),
+  `states.mjs` (the states it renders), `serve.mjs` (test server that applies `_headers` and 404s like
+  Cloudflare), with `*.test.mjs` for the first and last.
+- `docs/handoff/` - the handoff README and its 21 reference screenshots, verbatim. Do not edit.
+- `nix/` - `checks.nix`, `treefmt.nix`. `flake.nix` - package, checks, apps (`bake`, `deploy`), devenv shell.
+- `tmp/`, `.superpowers/`, `.claude/` - scratch, gitignored, never committed.
+
+## Commands
+
+| What | Command |
+| --- | --- |
+| Shell | `nix develop --impure` (or `direnv allow`); helpers `dev`, `build`, `verify`, `properties` |
+| Unit tests | `npm test` (vitest under `TZ=America/Los_Angeles`, `Asia/Tokyo`, `UTC`) |
+| Build | `npm run build` (runs `npm test` and the upkeep check first, via `prebuild`) or `nix build` |
+| Static checks | `node scripts/verify-static.mjs [dir]` |
+| Browser acceptance | `npm run build && npm run verify` (filters: `node scripts/verify.mjs controls axe`) |
+| Properties | `npm run test:ui` (Bombadil, 60 s x 3 runs) or `node tests/ui/run.mjs 5m` before a release |
+| Everything non-browser | `nix flake check --impure` |
+| Format | `nix fmt` (nix/json/yaml only; handoff sources keep their delivered formatting) |
+
+Playwright and Bombadil use Chromium from nixpkgs (`PLAYWRIGHT_BROWSERS_PATH`, set by the shell). The
+`playwright` npm version must equal nixpkgs `playwright-driver` (`checks.playwright-pin`); after a
+`nix flake update`, bump `package.json` to match and `npm install`.
+
+## Rules that must keep holding (from the handoff, plus what the port added)
+
+- **Static forever.** Nothing is fetched except the site's own files. The CSP in `public/_headers` enforces it.
+  `style-src` keeps `'unsafe-inline'` **on purpose**: `view.ts` writes `style=""` attributes on every layer. The
+  sibling sites forbid that; this one must not (`S-CSP` in `verify-static.mjs` fails if it is removed).
+- **No inline event-handler attributes reach the parser.** Templates write `onClick="{{fn}}"`; `mount()` renames
+  them to `sc-onclick` before parsing, because Chrome reports each parsed `on*` attribute as a CSP violation even
+  inside an inert `<template>`. Keep handlers as `{{holes}}`.
+- **Seattle time only.** Never the visitor's clock or zone. Unit tests run under three zones; `verify.mjs` pins the
+  browser clock and checks the live clock and almanac date from Tokyo and UTC.
+- **Same sky for everyone.** Weather is a hash of Seattle date and hour weighted by Sea-Tac 1991-2020 normals; it is
+  typical, not a forecast.
+- **Fixed camera**, **no sound**, **no named relatives or dates**. The owner's own name (humans.txt) is fine.
+- Nothing shipped mentions the retired `akl.io`, analytics, or keybase (`S-BANNED`).
+
+## Tables to maintain
+
+| Table | Where | When |
+| --- | --- | --- |
+| Calendar events | `sky.calendar` in `src/sky/model.ts`; bump `CALENDAR_REVIEWED` | Yearly; `tests/upkeep.mjs` warns |
+| Weather normals | `NORMALS`, `NORMALS_PERIOD` in `model.ts` | When NOAA publishes 2001-2030 (~2031) |
+| Photo credit | `SITE.photo` in `src/site.ts` | Only if the photo changes |
+
+## Deploy
+
+- Production is Cloudflare **Workers Builds** (git-connected, like akl.dev and akl.run): it runs `npm ci && npm
+  run build` on Cloudflare (so `prebuild` gates the deploy on the unit tests) and then `npx wrangler deploy` with
+  `wrangler.json` (Worker `loghry-org`, assets-only, `not_found_handling: 404-page`; `previews: {}` is required by
+  `wrangler preview`). On that path the build stamp's commit is `WORKERS_CI_COMMIT_SHA` and its date is the build
+  day (UTC), not the commit day.
+- Manual alternative: `nix build && nix run .#deploy` (needs `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` in the
+  environment). From `trunk` it deploys; from any other branch it uploads a preview version.
+- No secrets live in the repo. Never push or deploy from an agent unless the owner asks.
+
+## Conventions
+
+- `git add <explicit paths>` only (some dotfiles in this workspace are bind-mounted devices).
+- New behaviour gets a test first: unit (vitest) for logic, `verify.mjs` for anything a browser must show, a
+  Bombadil property for anything that must hold whatever a visitor does.
+- If `verify.mjs` reports a console error or CSP violation, it is a real bug: the handoff's hand checks missed one
+  (see the inline-handler rule above).

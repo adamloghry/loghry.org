@@ -1,1 +1,5 @@
-{ "extends": "astro/tsconfigs/base", "include": ["src", "tests"], "compilerOptions": { "noImplicitAny": false } }
+{
+  "extends": "astro/tsconfigs/base",
+  "include": ["src", "tests"],
+  "compilerOptions": { "noImplicitAny": false }
+}

@@ -1,0 +1,48 @@
+name: Nix checks
+
+on: [push]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    name: Flake checks and browser suites
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+
+      # --impure because the devenv-based devShell cannot be evaluated purely, and `nix flake check` evaluates
+      # every flake output. Builds the site (unit tests x3 time zones run in prebuild), astro check, static checks.
+      - name: Flake check
+        run: nix flake check --impure --no-update-lock-file
+
+      - name: Build for the browser suites
+        run: nix develop --impure --command npm run build
+
+      - name: Playwright acceptance (21 reference states, controls, time zones, axe, contrast)
+        run: nix develop --impure --command node scripts/verify.mjs
+
+      - name: Bombadil properties
+        run: nix develop --impure --command npm run test:ui
+
+      - name: Upload screenshots and Bombadil traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-output
+          path: |
+            tmp/shots/
+            tmp/bombadil-*/
+          if-no-files-found: ignore

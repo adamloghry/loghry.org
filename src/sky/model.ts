@@ -23,7 +23,7 @@ export const sky: any = {
   parts(ms) {
     try {
       const f = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' });
-      const o = {}; f.formatToParts(new Date(ms)).forEach((p) => { o[p.type] = p.value; });
+      const o: Record<string, string> = {}; f.formatToParts(new Date(ms)).forEach((p) => { o[p.type] = p.value; });
       const y = +o.year, mo = +o.month, d = +o.day, h = (+o.hour) % 24, mi = +o.minute;
       return { y, mo, d, h, mi, off: Math.round((Date.UTC(y, mo - 1, d, h, mi) - ms) / 60000) };
     } catch (e) {
@@ -82,7 +82,7 @@ export const sky: any = {
   dayEvents(y, mo, d) {
     const key = y + '-' + mo + '-' + d;
     if (this._ev && this._ev.key === key) return this._ev;
-    const base = this.toUtc(y, mo, d, 0, 0), els = [];
+    const base = this.toUtc(y, mo, d, 0, 0), els: number[] = [];
     for (let m = 0; m <= 1440; m += 10) els.push(this.sun(base + m * 60000).el);
     const find = (th, up) => {
       for (let i = 0; i < els.length - 1; i++) {

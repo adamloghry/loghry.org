@@ -36,6 +36,7 @@ describe('hero with malformed preview hooks', () => {
     vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-22T21:00:00Z'));
     const v = new Hero({ moment: 'garbage', sky: 'nope', event: '??', moon: 'x', lightStyle: 'y', box: () => ({ w: 1440, h: 900 }), siteUrl: 'https://loghry.org/', photoCredit: 'x', photoUrl: 'y', buildDate: 'd', buildCommit: 'c' }).renderVals();
     expect(v.clock).toMatch(/^1:00 PM PST/);
-    expect(strings({ clock: v.clock, status: v.status }).join(' ')).not.toMatch(/NaN|undefined/);
+    for (const line of [v.sunLine, v.skyLine]) expect(line).toMatch(/\S/);
+    expect(strings({ clock: v.clock, sunLine: v.sunLine, skyLine: v.skyLine }).join(' ')).not.toMatch(/NaN|undefined/);
   });
 });

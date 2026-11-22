@@ -219,8 +219,13 @@ do not push.
   `prebuild` runs the unit tests (×3 time zones) and the upkeep check, so
   nothing reaches production untested. `site.ts` additionally reads
   Cloudflare's `WORKERS_CI_COMMIT_SHA` for the build stamp when
-  `LOGHRY_COMMIT` is unset (the only handoff-code change; date falls back
-  to build day, as the handoff already does).
+  `LOGHRY_COMMIT` is unset (date falls back to build day, as the handoff
+  already does).
+- **Handoff-code changes made during the build** (each with a test): the
+  build stamp above; preview-hook parsing moved from `main.ts` into
+  `src/sky/hooks.ts`; `view.ts` renames bound `on*="{{…}}"` attributes before
+  parsing (Chrome reported each as a CSP violation, 6 console errors per
+  load); two type annotations in `model.ts` for `astro check`.
 - **Branch**: work lands on a `redesign` branch in this checkout (no
   worktree needed: nothing else is running here); `trunk` is left at the
   old site until the owner merges. akl.run gets its own branch as above.

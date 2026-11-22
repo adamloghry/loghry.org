@@ -44,7 +44,9 @@ the baked layers or their tuning without the owner.
 | Everything non-browser | `nix flake check --impure` |
 | Format | `nix fmt` (nix/json/yaml only; handoff sources keep their delivered formatting) |
 
-Playwright and Bombadil use Chromium from nixpkgs (`PLAYWRIGHT_BROWSERS_PATH`, set by the shell). The
+`verify.mjs` runs every state in Chromium, WebKit and Firefox (`VERIFY_BROWSERS=chromium` to narrow; nixpkgs
+ships WebKit/Firefox for Playwright on Linux only); Bombadil uses Chromium. All come from nixpkgs
+(`PLAYWRIGHT_BROWSERS_PATH`, set by the shell). The
 `playwright` npm version must equal nixpkgs `playwright-driver` (`checks.playwright-pin`); after a
 `nix flake update`, bump `package.json` to match and `npm install`.
 

@@ -31,7 +31,7 @@ jobs:
       - name: Build for the browser suites
         run: nix develop --impure --command npm run build
 
-      - name: Playwright acceptance (21 reference states, controls, time zones, axe, contrast)
+      - name: Playwright acceptance (all states in Chromium, WebKit, Firefox; controls, time zones, axe, contrast)
         run: nix develop --impure --command node scripts/verify.mjs
 
       - name: Bombadil properties

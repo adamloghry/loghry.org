@@ -21,6 +21,8 @@ const slider = extract((s) => s.document.querySelector('input[type=range]')?.get
 const scrubExpanded = extract((s) => s.document.querySelector('.lk-status > button')?.getAttribute('aria-expanded') ?? null);
 const wordsHidden = extract((s) => { const el = s.document.querySelector('.lk-bottom .lk-words') as HTMLElement | null; return el ? s.window.getComputedStyle(el).visibility === 'hidden' : null; });
 const hidePressed = extract((s) => s.document.querySelector('.lk-top > button')?.getAttribute('aria-pressed') ?? null);
+const shareLabel = extract((s) => [...s.document.querySelectorAll('[data-test=panel] button')].map((b) => b.textContent ?? '')[0] ?? null);
+const origin = extract((s) => s.window.location.origin);
 const overflowX = extract((s) => s.document.documentElement.scrollWidth - s.document.documentElement.clientWidth);
 const unnamedControls = extract((s) => [...s.document.querySelectorAll('button, a, input')].filter((el) => !((el.textContent ?? '').trim() || el.getAttribute('aria-label') || (el as HTMLInputElement).labels?.length)).length);
 
@@ -47,3 +49,8 @@ export const everyControlHasAName = always(() => unnamedControls.current === 0);
 
 // The page never scrolls sideways.
 export const noSidewaysScroll = always(() => overflowX.current <= 1);
+
+// "link to this moment" only ever offers a well-formed link back to this site: the label, "copied", or (when the
+// clipboard is refused, as in a headless browser) the link itself, pinned to a Seattle wall-clock minute.
+export const shareLinkIsWellFormed = always(() => shareLabel.current === null || shareLabel.current === 'link to this moment' || shareLabel.current === 'copied'
+  || new RegExp('^' + origin.current.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/#t=\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d(&|$)').test(shareLabel.current));

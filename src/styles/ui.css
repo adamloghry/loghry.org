@@ -32,8 +32,9 @@ a.lk-link{color:inherit}
 .lk-dot{width:6px;height:6px;border-radius:50%;background:#ffd6a0}
 @supports not (offset-path: path('M0 0 L1 1')){[style*="offset-path"]{display:none}}
 
+/* the chip has the top bar to itself (no wordmark), so it names the lake down to 360px */
+@media (max-width:359px){.lk-wide{display:none}}
 @media (max-width:700px){
-  .lk-wide{display:none}
   .lk-top{font-size:11px}
   .lk-status{font-size:12px;gap:0 16px}
   .lk-panel{white-space:normal;text-align:right}

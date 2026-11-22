@@ -97,9 +97,11 @@
               // args
             );
 
+          # Chromium (+ headless shell), Firefox and WebKit: verify.mjs runs every state in all three.
+          # nixpkgs packages Playwright's WebKit and Firefox for Linux only; elsewhere use VERIFY_BROWSERS=chromium.
           playwrightBrowsers = pkgs.playwright-driver.browsers.override {
-            withFirefox = false;
-            withWebkit = false;
+            withFirefox = pkgs.stdenv.isLinux;
+            withWebkit = pkgs.stdenv.isLinux;
           };
 
           bakePython = pkgs.python3.withPackages (p: [
@@ -221,8 +223,8 @@
                   scripts.properties.exec = "npm run test:ui -- \"$@\"";
 
                   env = {
-                    # chromium + chromium_headless_shell only. Not playwright-driver.browsers-chromium: it omits the
-                    # headless shell that the default headless chromium.launch() needs. Bombadil uses it too.
+                    # Not playwright-driver.browsers-chromium: it omits the headless shell that the default headless
+                    # chromium.launch() needs. Bombadil uses the same Chromium.
                     PLAYWRIGHT_BROWSERS_PATH = "${playwrightBrowsers}";
                     PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
                     PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";

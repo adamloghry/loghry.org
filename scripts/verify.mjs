@@ -1,7 +1,9 @@
 // Acceptance checks against the built site in a real browser. Run:  npm run build && npm run verify
-// Serves dist/ with public/_headers applied (scripts/serve.mjs), drives Chromium with Playwright, exits non-zero
-// on any failure. Screenshots go to tmp/shots/. Chromium comes from PLAYWRIGHT_BROWSERS_PATH (the dev shell sets it).
-import { chromium } from 'playwright';
+// Serves dist/ with public/_headers applied (scripts/serve.mjs), drives real browsers with Playwright, exits non-zero
+// on any failure. Screenshots go to tmp/shots/. Browsers come from PLAYWRIGHT_BROWSERS_PATH (the dev shell sets it).
+// Every state runs in Chromium, WebKit (Safari's engine) and Firefox; VERIFY_BROWSERS=chromium,webkit narrows that.
+// Controls, time zones, axe and contrast run in Chromium only.
+import { chromium, webkit, firefox } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { mkdir } from 'node:fs/promises';
 import { serve } from './serve.mjs';
@@ -13,7 +15,11 @@ await mkdir(shots, { recursive: true });
 const only = process.argv.slice(2);
 const srv = await serve(dist, 0);
 const base = `http://127.0.0.1:${srv.port}`;
-const browser = await chromium.launch();
+const ENGINES = { chromium, webkit, firefox };
+const engines = (process.env.VERIFY_BROWSERS || 'chromium,webkit,firefox').split(',').map((e) => e.trim()).filter(Boolean);
+for (const e of engines) if (!ENGINES[e]) throw new Error(`VERIFY_BROWSERS: unknown browser ${e}`);
+const chrome = await chromium.launch();
+let browser = chrome; // the engine open() uses
 let fails = 0;
 const ok = (id, cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'} ${id}  ${msg}`); if (!cond) fails++; };
 const want = (name) => !only.length || only.some((o) => name.includes(o));
@@ -51,10 +57,17 @@ const platesSettled = () => [...document.querySelectorAll('.lk-plate')].every((i
 const settle = (page) => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 const t0 = Date.now(); const lap = (what) => console.log(`---- ${what} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
 
-// ---- every state ----
-for (const state of STATES.filter((s) => want(s.name))) {
+// ---- every state, in every engine ----
+for (const engine of engines) {
+  const pre = engine === 'chromium' ? '' : engine + ':';
+  const states = STATES.filter((s) => want(s.name) || (pre && want(engine)));
+  if (!states.length) continue;
+  // A browser that fails to launch is a failure, not a skip: the suite must not pass by testing less.
+  browser = engine === 'chromium' ? chrome : await ENGINES[engine].launch().catch((e) => { ok(pre + 'launch', false, e.message.split('\n')[0]); return null; });
+  if (!browser) continue;
+for (const state of states) {
   const { ctx, page, problems, res } = await open(state);
-  const id = state.name;
+  const id = pre + state.name;
   if (state.open) { await page.locator('.lk-gear > button').click(); await page.waitForTimeout(300); }
   const r = await page.evaluate(() => ({
     h1: document.querySelectorAll('h1').length,
@@ -76,9 +89,13 @@ for (const state of STATES.filter((s) => want(s.name))) {
     // Owner decision 2026-11-22: no "loghry.org" wordmark top left; the coordinates chip stays top right.
     const top = await page.evaluate(() => {
       const bar = document.querySelector('.lk-top'), chip = document.querySelector('.lk-top > button');
-      return { mark: !!document.querySelector('.lk-mark'), text: bar.textContent, gap: bar.getBoundingClientRect().right - chip.getBoundingClientRect().right };
+      return { mark: !!document.querySelector('.lk-mark'), text: bar.textContent, gap: bar.getBoundingClientRect().right - chip.getBoundingClientRect().right,
+        shown: chip.innerText, fits: chip.getBoundingClientRect().left >= bar.getBoundingClientRect().left - 1 };
     });
     ok(id + ' top-bar', !top.mark && !/loghry\.org/i.test(top.text) && Math.abs(top.gap) <= 1, `no wordmark; chip flush right (${top.gap.toFixed(1)}px)`);
+    // With the wordmark gone the chip has the bar to itself: it names the lake down to 360px, and always fits.
+    const wantLake = state.viewport.width >= 360;
+    ok(id + ' chip', top.fits && /lake union/i.test(top.shown) === wantLake, `chip "${top.shown.replace(/\s+/g, ' ')}" ${wantLake ? 'names' : 'omits'} the lake and fits`);
   }
   if (state.open) ok(id + ' panel', await page.locator('[data-test=panel]').isVisible(), 'panel open');
   if (state.js === false) {
@@ -102,11 +119,14 @@ for (const state of STATES.filter((s) => want(s.name))) {
   // Plates fade in over 2.4 s from opacity 0; a screenshot before that shows a dim scene, not the state.
   const settled = await page.waitForFunction(platesSettled, null, { timeout: 8000 }).then(() => true, () => false);
   ok(id + ' settled', settled, 'photo layers finished fading in before the screenshot');
-  await page.screenshot({ path: shots + id + '.png', fullPage: !!state.fullPage });
+  await page.screenshot({ path: shots + id.replace(':', '-') + '.png', fullPage: !!state.fullPage });
   await ctx.close();
 }
+  if (browser !== chrome) await browser.close();
+  lap('states ' + engine);
+}
+browser = chrome;
 
-lap('states');
 // ---- Seattle time, whatever the visitor's time zone ----
 if (want('timezone')) {
   const st = { viewport: VIEWPORTS.desktop, hash: 't=2026-06-21T13:00&sky=clear' };
@@ -229,7 +249,7 @@ if (want('contrast')) {
 }
 
 lap('contrast');
-await browser.close();
+await chrome.close();
 await srv.close();
 console.log(fails ? `\n${fails} failed` : '\nall passed');
 process.exitCode = fails ? 1 : 0;

@@ -1,0 +1,56 @@
+==================================================================
+https://keybase.io/akl
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://loghry.org
+  * I am akl (https://keybase.io/akl) on keybase.
+  * I have a public key ASAxDdGzZpKdGBM9P-6LPAdwtFOvKdwDbu6JM-LPGNWtvAo
+
+To do so, I am signing this object:
+
+{
+  "body": {
+    "key": {
+      "eldest_kid": "0120310dd1b366929d18133d3fee8b3c0770b453af29dc036eee8933e2cf18d5adbc0a",
+      "host": "keybase.io",
+      "kid": "0120310dd1b366929d18133d3fee8b3c0770b453af29dc036eee8933e2cf18d5adbc0a",
+      "uid": "24cd78e53716dad4d4c135fffcc6bb00",
+      "username": "akl"
+    },
+    "merkle_root": {
+      "ctime": 1530934379,
+      "hash": "06d86dc59168b2c9c298be67e865e9a48d708544c8c6547dbdc27feec70b125cdf6f62742e70aa54a38984bed5522a076fcd2feb0a1c37e2b43e0a64d9ed5c14",
+      "hash_meta": "30c6d2739e90d23be3c64331bfe772fb964932f8df82539c0dd6dc12db9fc9aa",
+      "seqno": 3212301
+    },
+    "service": {
+      "entropy": "QQ9qhfzLqJz97gIVEqeGMhpi",
+      "hostname": "loghry.org",
+      "protocol": "https:"
+    },
+    "type": "web_service_binding",
+    "version": 2
+  },
+  "client": {
+    "name": "keybase.io go client",
+    "version": "2.1.2"
+  },
+  "ctime": 1530934415,
+  "expire_in": 504576000,
+  "prev": "b90aec02d0a153e67fe11dc6c1173dd16149c306fc8c9fe76e2eef1db7d0fd8c",
+  "seqno": 34,
+  "tag": "signature"
+}
+
+which yields the signature:
+
+hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgMQ3Rs2aSnRgTPT/uizwHcLRTryncA27uiTPizxjVrbwKp3BheWxvYWTESpcCIsQguQrsAtChU+Z/4R3GwRc90WFJwwb8jJ/nbi7vHbfQ/YzEINXm2VopYiaV3uP/fa/12gfcVcniy8DjdNms9ThQvX2RAgHCo3NpZ8RAkB7Ds6FFOn+eIKS7i4Ha5iG95yG03reIsFAc5/jqZZoCv8BfRDH2SNoFuk7fzLkMjbq3+9eJ4EfJ9UqpR253AahzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEIKKdBESMw5d73xYHa7YYpGEitbi5cOWEH53ndLSidZqmo3RhZ80CAqd2ZXJzaW9uAQ==
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/akl
+
+==================================================================

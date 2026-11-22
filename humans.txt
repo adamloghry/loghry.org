@@ -1,0 +1,7 @@
+/* TEAM */
+Your title: Adam Loghry
+Site: https://akl.io
+Location: Seattle, USA
+/* SITE */
+Components: html5up.net templates
+Software: Emacs

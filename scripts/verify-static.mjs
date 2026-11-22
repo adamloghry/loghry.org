@@ -60,9 +60,19 @@ export async function checkDist(dir) {
     ];
     for (const u of urls) if (!sameOrigin(u)) foreign.push(`${n} ${u}`);
   }
-  for (const [n, c] of css) for (const m of c.matchAll(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/gi)) {
-    const u = m[1] ?? m[2] ?? m[3];
-    if (!sameOrigin(u)) foreign.push(`${n} ${u.slice(0, 40)}`);
+  for (const [n, c] of css) {
+    for (const m of c.matchAll(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/gi)) {
+      const u = m[1] ?? m[2] ?? m[3];
+      if (!sameOrigin(u)) foreign.push(`${n} ${u.slice(0, 40)}`);
+    }
+    // @import "…" needs no url()
+    for (const m of c.matchAll(/@import\s+["']([^"']+)["']/gi)) if (!sameOrigin(m[1])) foreign.push(`${n} @import ${m[1].slice(0, 40)}`);
+  }
+  // Scripts: any absolute URL literal must be this site, an allowed outbound link, or an XML namespace (never fetched).
+  for (const [n, j] of Object.entries(text).filter(([k]) => k.endsWith('.js'))) for (const m of j.matchAll(/https?:\/\/[^"'`\s)\\]+/g)) {
+    const u = m[0];
+    if (sameOrigin(u) || /^http:\/\/www\.w3\.org\//.test(u)) continue;
+    if (!LINK_HOSTS.has(new URL(u).hostname.replace(/^www\./, ''))) foreign.push(`${n} ${u.slice(0, 50)}`);
   }
   check('S-ORIGIN', foreign, 'everything loaded is same-origin');
 
@@ -88,7 +98,10 @@ export async function checkDist(dir) {
   if ((dirs['default-src'] || []).join(' ') !== "'none'") cspProblems.push("default-src is not 'none'");
   if (!dirs['script-src']) cspProblems.push('no script-src');
   if ((dirs['script-src'] || []).some((v) => /unsafe-(inline|eval)/.test(v))) cspProblems.push('script-src allows unsafe-*');
-  check('S-CSP', cspProblems, "CSP default-src 'none', no unsafe scripts");
+  // Deliberate, unlike akl.dev/akl.run: src/sky/view.ts sets style="" attributes on every layer, which the CSP
+  // treats as inline style. Dropping 'unsafe-inline' here leaves an unstyled, broken photo with only console errors.
+  if (!(dirs['style-src'] || []).includes("'unsafe-inline'")) cspProblems.push("style-src lacks 'unsafe-inline' (needed by the layer style attributes)");
+  check('S-CSP', cspProblems, "CSP default-src 'none', no unsafe scripts, inline style attributes allowed");
 
   let bytes = 0;
   for (const f of files) bytes += (await stat(f)).size;

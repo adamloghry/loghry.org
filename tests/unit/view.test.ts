@@ -46,6 +46,16 @@ describe('template runtime', () => {
     inst.setState({ off: false });
     expect(host.querySelector('button')!.hasAttribute('disabled')).toBe(false);
   });
+  it('never parses an inline event-handler attribute (Chrome reports each one as a CSP violation, even inside <template>)', () => {
+    const desc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML')!;
+    const parsed: string[] = [];
+    Object.defineProperty(Element.prototype, 'innerHTML', { ...desc, set(v: string) { parsed.push(v); desc.set!.call(this, v); } });
+    try {
+      mount(document.createElement('div'), '<button onClick="{{go}}">go</button><input onChange="{{go}}">', class extends View { renderVals() { return { go: () => {} }; } }, {});
+    } finally { Object.defineProperty(Element.prototype, 'innerHTML', desc); }
+    expect(parsed).toHaveLength(1); // the template really was parsed through innerHTML
+    expect(parsed.join('')).not.toMatch(/\son[a-z]+=/i);
+  });
   it('binds on* attributes to handlers instead of setting them', () => {
     const onClick = vi.fn();
     const host = document.createElement('div');

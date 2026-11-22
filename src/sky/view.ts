@@ -47,7 +47,7 @@ function build(n: any, scope: Scope, key: string, out: VNode[]) {
   const v: VNode = { k: key + n.__id, tag: name, ns: n.namespaceURI, attrs: {}, on: {}, kids: [] };
   for (const a of n.attributes) {
     const val = subst(scope, a.value);
-    if (typeof val === 'function') { const ev = a.name.slice(2).toLowerCase(); v.on![ev === 'change' ? 'input' : ev] = val; continue; }
+    if (typeof val === 'function') { const ev = a.name.replace(/^sc-on/, '').toLowerCase(); v.on![ev === 'change' ? 'input' : ev] = val; continue; }
     if (val === false || val == null) continue;
     v.attrs![a.name] = val === true ? '' : String(val);
   }
@@ -82,7 +82,9 @@ function patch(parent: any, kids: VNode[]) {
 
 export function mount<T extends View>(host: Element, templateHtml: string, Comp: new (props: any) => T, props: any): T {
   const tpl = document.createElement('template');
-  tpl.innerHTML = templateHtml;
+  // Bound handlers are written onClick="{{fn}}" in the templates. Rename them before parsing: Chrome reports every
+  // on* attribute it parses as a CSP inline-script violation, even inside an inert <template>.
+  tpl.innerHTML = templateHtml.replace(/\son([a-z]+)=(["'])\{\{/gi, ' sc-on$1=$2{{');
   tpl.content.childNodes.forEach(tag);
   const inst = new Comp(props);
   let queued = false;

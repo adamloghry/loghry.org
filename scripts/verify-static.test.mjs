@@ -65,3 +65,11 @@ test('S-SITEMAP: listing the 404 page fails', async () =>
   assert.deepEqual(await failing({ 'sitemap-0.xml': '<urlset><url><loc>https://loghry.org/</loc></url><url><loc>https://loghry.org/404/</loc></url></urlset>' }), ['S-SITEMAP']));
 test('S-SITEMAP: missing the home page fails', async () =>
   assert.deepEqual(await failing({ 'sitemap-0.xml': '<urlset></urlset>' }), ['S-SITEMAP']));
+test("S-CSP: style-src must keep 'unsafe-inline' (the template runtime writes style attributes; without it the photo layers break silently)", async () =>
+  assert.deepEqual(await failing({ '_headers': `/*\n  ${CSP.replace("style-src 'self' 'unsafe-inline'", "style-src 'self'")}\n` }), ['S-CSP']));
+test('S-ORIGIN: a third-party CSS @import without url() fails', async () =>
+  assert.deepEqual(await failing({ '_astro/a.css': '@import "https://fonts.googleapis.com/css2?family=X";body{}' }), ['S-ORIGIN']));
+test('S-ORIGIN: a third-party URL in a JS bundle fails', async () =>
+  assert.deepEqual(await failing({ '_astro/a.js': 'fetch("https://api.example.com/weather").then(r=>r.json())' }), ['S-ORIGIN']));
+test('S-ORIGIN: the photo-credit link and the site itself may appear in JS', async () =>
+  assert.deepEqual(await failing({ '_astro/a.js': 'const u="https://unsplash.com/photos/x", s="https://loghry.org/", ns="http://www.w3.org/2000/svg"' }), []));

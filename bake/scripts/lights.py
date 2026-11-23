@@ -180,11 +180,24 @@ EASTLAKE = [(0.27, 0.505), (0.31, 0.44), (0.35, 0.38), (0.385, 0.33), (0.41, 0.3
 # not out in the bay to its west. East of the park (left in frame) it follows the bay's land side and the north bank of the
 # Ship Canal, under the photo's clouds, and passes under I-5 as NE Pacific St (owner, 2026-11-22: it used to end in the water).
 WESTLAKE = [(0.522, 0.279), (0.574, 0.288), (0.600, 0.296), (0.628, 0.310), (0.659, 0.338), (0.700, 0.3585), (0.759, 0.377), (0.815, 0.386), (0.870, 0.390), (1.0, 0.394)]
-NORTHLAKE = [  # NE Pacific St (left edge, under I-5) <- NE/N Northlake Way around the bay east of Gas Works <- N 34th St (west, right)
-    (-0.01, 0.742), (0.040, 0.724), (0.085, 0.708), (0.130, 0.690), (0.175, 0.668), (0.220, 0.652), (0.265, 0.638), (0.310, 0.628),
-    (0.350, 0.620), (0.385, 0.613), (0.420, 0.610), (0.450, 0.608), (0.480, 0.603), (0.505, 0.592), (0.520, 0.568), (0.524, 0.545),
-    (0.518, 0.522),
-    (0.512, 0.503), (0.53, 0.501), (0.56, 0.498), (0.64, 0.494), (0.72, 0.498), (0.80, 0.497), (0.90, 0.494), (1.0, 0.492)]
+def smooth(P, n=10):
+    """Catmull-Rom through the control points: real streets bend, they do not kink."""
+    P = np.asarray(P, float); P2 = np.vstack([P[0], P, P[-1]]); out = []
+    for i in range(1, len(P2) - 2):
+        p0, p1, p2, p3 = P2[i - 1], P2[i], P2[i + 1], P2[i + 2]
+        for t in np.linspace(0, 1, n, endpoint=False):
+            out.append(tuple(0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t ** 3)))
+    out.append(tuple(P[-1])); return out
+# N 34th St / N Northlake Way, traced on the photo (owner, 2026-11-22: make it wind as it does): along the south edge of
+# Gas Works, toward the shore behind the boatyards, on to Fremont (right); east of the park (left) down the diagonal of
+# NE Northlake Way past the marinas, round the bay and along the Ship Canal's north bank under I-5 as NE Pacific St.
+NORTHLAKE = smooth([
+    (-0.01, 0.742), (0.04, 0.724), (0.085, 0.707), (0.13, 0.69), (0.175, 0.669), (0.22, 0.653), (0.265, 0.639), (0.31, 0.628),
+    (0.35, 0.62), (0.385, 0.6145), (0.415, 0.6115), (0.442, 0.6095), (0.462, 0.6055), (0.479, 0.5945), (0.493, 0.576), (0.5055, 0.556),
+    (0.5155, 0.536), (0.5185, 0.518), (0.5135, 0.505), (0.525, 0.5015), (0.545, 0.4995), (0.57, 0.4975), (0.6, 0.4955), (0.625, 0.495),
+    (0.65, 0.496), (0.668, 0.4945), (0.684, 0.4905), (0.7, 0.488), (0.72, 0.4878), (0.745, 0.4892), (0.775, 0.4908), (0.805, 0.4915),
+    (0.835, 0.4925), (0.858, 0.4945), (0.878, 0.4952), (0.9, 0.494), (0.93, 0.4925), (0.965, 0.492), (1.01, 0.4915),
+])
 # No Mercer: a straight trace through South Lake Union to the Needle read as a ruler line (owner, 2026-11-22). The far
 # city there is already lit from the photo's own built pixels (section 2).
 # Owner, 2026-11-22: Westlake and N 34th St (NORTHLAKE) at half strength. Passed to add() as dim=, which raster()

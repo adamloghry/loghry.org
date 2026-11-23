@@ -261,6 +261,10 @@ do not push.
   St, instead of ending in the water. East of the bay it runs under the photo's
   clouds, so it reads as a soft glow there (traced from the photo; no map tiles
   were available offline).
+- 2026-11-22: N 34th St / N Northlake Way re-traced along the street visible in
+  the photo and smoothed (Catmull-Rom): it follows Gas Works' south edge, bends
+  toward the shore behind the boatyards on its way to Fremont, and east of the
+  park curves down NE Northlake Way round the bay instead of turning a corner.
 - 2026-11-22: downtown lighting redrawn per building. Towers (the existing
   silhouette mask, split into building-width slices) each get their own share
   of lit floors, window fill, colour family, brightness, floor height and

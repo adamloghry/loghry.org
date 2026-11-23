@@ -53,6 +53,15 @@
 .lk-cloud1{-webkit-mask-image:url(../assets/sky/cloud1_t.webp);mask-image:url(../assets/sky/cloud1_t.webp);-webkit-mask-size:50% 100%;mask-size:50% 100%;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
 .lk-cloud2{-webkit-mask-image:url(../assets/sky/cloud2_t.webp);mask-image:url(../assets/sky/cloud2_t.webp);-webkit-mask-size:50% 100%;mask-size:50% 100%;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
 .lk-rv{-webkit-mask-image:url(../assets/sky/rain_veil.webp);mask-image:url(../assets/sky/rain_veil.webp);-webkit-mask-size:50% 100%;mask-size:50% 100%;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
+/* Skyline lighting calendar (model.ts skylineLighting). The Needle's halo in team or Pride colours; the KING 5 tower
+   on Queen Anne lit as a holiday tree in December: coloured lights on a tall triangle. */
+.lk-needle{mix-blend-mode:screen}
+.lk-needle-seahawks{background:#69be28;box-shadow:0 0 6px 2px rgba(0,34,68,.9),0 0 10px 3px rgba(105,190,40,.6);animation:lk-hawks 4s steps(1,end) infinite}
+@keyframes lk-hawks{0%{background:#69be28}50%{background:#2a6ab8}}
+.lk-needle-pride{background:#e40303;box-shadow:0 0 8px 2px currentColor;animation:lk-pride 6s linear infinite}
+@keyframes lk-pride{0%{background:#e40303}17%{background:#ff8c00}33%{background:#ffed00}50%{background:#008026}67%{background:#004dff}83%{background:#750787}100%{background:#e40303}}
+.lk-kingtree{clip-path:polygon(50% 0,100% 100%,0 100%);background:radial-gradient(circle at 30% 70%,#ff3b2f 0 1px,transparent 1.5px) 0 0/5px 6px,radial-gradient(circle at 70% 30%,#5cff7a 0 1px,transparent 1.5px) 0 0/6px 5px,radial-gradient(circle at 50% 50%,#ffd84a 0 1px,transparent 1.5px) 0 0/7px 7px;animation:lk-twinkle 2.6s ease-in-out infinite alternate}
+@keyframes lk-twinkle{from{filter:brightness(.8)}to{filter:brightness(1.25)}}
 .lk-clearmask{-webkit-mask-image:url(../assets/sky/clear_a.webp);mask-image:url(../assets/sky/clear_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .lk-water{-webkit-mask-image:url(../assets/sky/water_a.webp);mask-image:url(../assets/sky/water_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .lk-lake{-webkit-mask-image:url(../assets/sky/lake_a.webp);mask-image:url(../assets/sky/lake_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}

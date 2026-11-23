@@ -92,6 +92,8 @@
 </sc-for>
 </div>
 </sc-if>
+<sc-if value="{{show.kingTree}}"><span class="lk-kingtree" aria-hidden="true" style="{{kingStyle}}"></span></sc-if>
+<sc-if value="{{show.needleColor}}"><span class="{{needleClass}}" aria-hidden="true" style="{{needleStyle}}"></span></sc-if>
 <sc-if value="{{show.beacons}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{beaconOpacity}}">
 <sc-for list="{{beacons}}" as="b"><span class="lk-blink" style="{{b.style}}"></span></sc-for>

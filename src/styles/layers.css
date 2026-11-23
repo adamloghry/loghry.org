@@ -24,12 +24,12 @@
 .lk-anim .lk-stage{animation:lk-drift 90s ease-in-out infinite alternate}
 .lk-anim .lk-pan{animation:lk-pan 260s linear infinite}
 .lk-anim .lk-pan-b{animation:lk-pan 420s linear infinite}
-.lk-anim .lk-veilpan{animation:lk-pan 55s linear infinite}
+.lk-anim .lk-veilpan{animation:lk-pan 110s linear infinite}
 .lk-anim .lk-fogmove{animation:lk-fog 80s ease-in-out infinite alternate}
 .lk-anim .lk-blink{animation:lk-blink 3s steps(1,end) infinite}
-.lk-anim .lk-f256{animation:lk-fall256 1.15s linear infinite}
-.lk-anim .lk-f384{animation:lk-fall384 .62s linear infinite}
-.lk-anim .lk-f512{animation:lk-fall512 .36s linear infinite}
+.lk-anim .lk-f256{animation:lk-fall256 2.3s linear infinite}   /* owner, 2026-11-22: rain at half the speed */
+.lk-anim .lk-f384{animation:lk-fall384 1.24s linear infinite}
+.lk-anim .lk-f512{animation:lk-fall512 .72s linear infinite}
 .lk-anim .lk-s256{animation:lk-fall256 7s linear infinite}
 .lk-anim .lk-s384{animation:lk-fall384 4.6s linear infinite}
 .lk-anim .lk-rip{animation:lk-ripx 46s steps(40) infinite}

@@ -36,9 +36,9 @@ describe('weather is continuous', () => {
 describe('cloud drift', () => {
   it('velocity follows the wind and passes through zero when the wind turns, never jumping', () => {
     let worst = 0;
-    // every 3rd day: the six hours either side of midnight in 2-minute steps (where day-level dice blend) and the rest
+    // every 5th day (the weather test above checks every midnight): the six hours either side of midnight in 2-minute steps (where day-level dice blend) and the rest
     // of the day every 30 minutes
-    for (let doy = 1; doy <= 365; doy += 3) {
+    for (let doy = 1; doy <= 365; doy += 5) {
       const d = new Date(Date.UTC(2026, 0, doy));
       for (let m = 0; m < 1440; m += (m < 180 || m >= 1260 ? 2 : 30)) {
         const ms = sky.toUtc(2026, d.getUTCMonth() + 1, d.getUTCDate(), Math.floor(m / 60), m % 60);

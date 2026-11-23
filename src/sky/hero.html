@@ -73,18 +73,20 @@
 </span>
 </sc-if>
 <sc-if value="{{show.ferries}}">
+<div class="lk-clearmask" aria-hidden="true" style="position: absolute; inset: 0">
 <sc-for list="{{ferries}}" as="f"><span class="lk-car" aria-hidden="true" style="{{f.style}}"></span></sc-for>
+</div>
 </sc-if>
 <sc-for list="{{aircraft}}" as="a"><span class="lk-car" aria-hidden="true" style="{{a.style}}"><span class="lk-strobe"></span><span class="lk-navlight"></span></span></sc-for>
 <sc-if value="{{show.dayCars}}">
-<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{dayCarsOpacity}}">
+<div class="lk-fade lk-clearmask" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{dayCarsOpacity}}">
 <sc-for list="{{dayCars}}" as="c">
 <span class="lk-car" style="{{c.style}}" data-off="{{c.off}}"></span>
 </sc-for>
 </div>
 </sc-if>
 <sc-if value="{{show.cars}}">
-<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{carsOpacity}}">
+<div class="lk-fade lk-clearmask" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{carsOpacity}}">
 <sc-for list="{{cars}}" as="c">
 <span class="lk-car" style="{{c.style}}" data-off="{{c.off}}"></span>
 </sc-for>
@@ -92,13 +94,7 @@
 </sc-if>
 <sc-if value="{{show.beacons}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{beaconOpacity}}">
-<span class="lk-blink" style="position: absolute; left: 629px; top: 222px; width: 4px; height: 4px; border-radius: 50%; background: #ff3b2f; box-shadow: 0 0 8px 3px rgba(255,59,47,.7)"></span>
-<span class="lk-blink" style="position: absolute; left: 1077px; top: 251px; width: 4px; height: 4px; border-radius: 50%; background: #ff3b2f; box-shadow: 0 0 8px 3px rgba(255,59,47,.7); animation-delay: -1.1s"></span>
-<span class="lk-blink" style="position: absolute; left: 730px; top: 239px; width: 3px; height: 3px; border-radius: 50%; background: #ff3b2f; box-shadow: 0 0 6px 2px rgba(255,59,47,.6); animation-delay: -2.2s"></span>
-<span class="lk-blink" style="position: absolute; left: 468px; top: 298px; width: 3px; height: 3px; border-radius: 50%; background: #ff3b2f; box-shadow: 0 0 6px 2px rgba(255,59,47,.6); animation-delay: -0.4s"></span>
-<span class="lk-blink" style="position: absolute; left: 551px; top: 281px; width: 3px; height: 3px; border-radius: 50%; background: #ff3b2f; box-shadow: 0 0 6px 2px rgba(255,59,47,.6); animation-delay: -1.7s"></span>
-<span class="lk-blink" style="position: absolute; left: 435px; top: 314px; width: 3px; height: 3px; border-radius: 50%; background: #ff3b2f; box-shadow: 0 0 6px 2px rgba(255,59,47,.6); animation-delay: -2.6s"></span>
-<span class="lk-blink" style="position: absolute; left: 331px; top: 295px; width: 3px; height: 3px; border-radius: 50%; background: #ff3b2f; box-shadow: 0 0 6px 2px rgba(255,59,47,.6); animation-delay: -0.9s"></span>
+<sc-for list="{{beacons}}" as="b"><span class="lk-blink" style="{{b.style}}"></span></sc-for>
 </div>
 </sc-if>
 <sc-if value="{{show.fireworks}}">

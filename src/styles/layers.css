@@ -53,6 +53,7 @@
 .lk-cloud1{-webkit-mask-image:url(../assets/sky/cloud1_t.webp);mask-image:url(../assets/sky/cloud1_t.webp);-webkit-mask-size:50% 100%;mask-size:50% 100%;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
 .lk-cloud2{-webkit-mask-image:url(../assets/sky/cloud2_t.webp);mask-image:url(../assets/sky/cloud2_t.webp);-webkit-mask-size:50% 100%;mask-size:50% 100%;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
 .lk-rv{-webkit-mask-image:url(../assets/sky/rain_veil.webp);mask-image:url(../assets/sky/rain_veil.webp);-webkit-mask-size:50% 100%;mask-size:50% 100%;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
+.lk-clearmask{-webkit-mask-image:url(../assets/sky/clear_a.webp);mask-image:url(../assets/sky/clear_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .lk-water{-webkit-mask-image:url(../assets/sky/water_a.webp);mask-image:url(../assets/sky/water_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .lk-lake{-webkit-mask-image:url(../assets/sky/lake_a.webp);mask-image:url(../assets/sky/lake_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .lk-foliage{-webkit-mask-image:url(../assets/sky/foliage_a.webp);mask-image:url(../assets/sky/foliage_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}

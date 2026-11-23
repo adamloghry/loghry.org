@@ -1,7 +1,7 @@
 // @ts-nocheck — ported from the design canvas; the model it calls is unit-tested
 // The hero: turns the model's numbers into layer opacities, colours and moving things, and draws them through the template.
 import template from './hero.html?raw';
-import { sky, trafficLevel, lapseMoment, dragMinutes, LAPSE_MS } from './model';
+import { sky, trafficLevel, lapseMoment, dragMinutes, LAPSE_MS, cloudVelocity } from './model';
 import { View } from './view';
 import { assets } from './assets';
 
@@ -16,11 +16,29 @@ export class Hero extends View {
   }
   componentDidMount() {
     this._t = setInterval(() => this.setState({ now: Date.now() }), 30000);
+    this.driftClouds();
     // stop all motion while the tab is in the background
     document.addEventListener('visibilitychange', () => this.setState({ hidden: document.hidden, now: Date.now() }));
     addEventListener('resize', () => { this.box = this.props.box(); this.__draw(); });
   }
 
+  // ----- clouds: moved here rather than by CSS so a change of wind eases instead of jumping (owner, 2026-11-22) -----
+  driftClouds() {
+    const host = this.props.host;
+    if (!host || this.reduced || typeof requestAnimationFrame !== 'function') return;
+    let last = performance.now(), v = this._cloudTarget || 0, x1 = sky.hash(1, 31), x2 = sky.hash(2, 31);
+    const step = (now) => {
+      const dt = Math.min(0.1, (now - last) / 1000); last = now;
+      if (!this.state.hidden) {
+        v += ((this._cloudTarget || 0) - v) * Math.min(1, dt / 8);             // ease toward the wind over ~8 s
+        x1 = (((x1 + v * dt) % 1) + 1) % 1; x2 = (((x2 + v * dt * 260 / 420) % 1) + 1) % 1;   // lower layer drifts slower
+        for (const el of host.querySelectorAll('[data-cloud="1"]')) el.style.transform = 'translateX(' + (-50 * x1).toFixed(3) + '%)';
+        for (const el of host.querySelectorAll('[data-cloud="2"]')) el.style.transform = 'translateX(' + (-50 * x2).toFixed(3) + '%)';
+      }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
   // ----- time-lapse -----
   freezeAt(ms) { const q = sky.parts(ms); return { lapse: null, minute: null, moment: { y: q.y, mo: q.mo, d: q.d, min: q.h * 60 + q.mi } }; }
   toggleLapse(kind, ms) {
@@ -197,6 +215,8 @@ export class Hero extends View {
     const O = { clear: { cloud: 0.06 }, partly: { cloud: 0.45 }, cloudy: { cloud: 0.95 }, rain: { cloud: 1, rain: 0.85 }, shower: { cloud: 0.6, rain: 0.3 }, fog: { cloud: 0.7, fog: 0.9 }, snow: { cloud: 1, snowCover: 1, snowing: 0.8, temp: 31 }, haze: { cloud: 0.12, haze: 0.8 } }[skyMode];
     if (O) wx = Object.assign({}, wx, { rain: 0, fog: 0, snowCover: 0, snowing: 0, haze: 0 }, O);
     const cloud = wx.cloud, rain = wx.rain, fog = wx.fog, snowing = wx.snowing, snowCover = wx.snowCover, haze = wx.haze, wind = wx.wind;
+    // clouds drift with the wind (driftClouds() eases toward this); a time-lapse speeds them up, capped so they streak, not flicker
+    this._cloudTarget = cloudVelocity(wind) * (st.lapse ? Math.min(25, 86400000 / LAPSE_MS[st.lapse.kind]) : 1);
 
     // ----- light: five graded plates, crossfaded by the sun's elevation -----
     const w = [0, 0, 0, 0, 0], G = pm ? 2 : 1;
@@ -392,6 +412,7 @@ export class Hero extends View {
       dayCarsOpacity: (1 - sky.ss(0.05, 0.6, on)).toFixed(3),
       carsOpacity: sky.ss(0.05, 0.6, on).toFixed(3),
       beaconOpacity: (0.9 * sky.ss(0.1, 0.7, on)).toFixed(3),
+      veilDir: wind.flow >= 0 ? 'normal' : 'reverse',   // the rain veil drifts with the wind
       ferryStyle: 'position:absolute;left:0;top:0;width:4px;height:3px;margin:-1px 0 0 -2px;border-radius:2px;background:#fffaf0;box-shadow:0 0 5px 2px rgba(255,248,230,' + (0.25 + 0.6 * on).toFixed(2) + ');offset-path:path(\'M813.6 250.6 L921.6 233.3 L1036.8 213.1 L1180.8 190.1 L1324.8 169.9 L1483.2 152.6\');offset-rotate:0deg;animation:lk-ferry 1500s linear infinite;animation-delay:-' + ((st.now / 1000) % 1500).toFixed(0) + 's',
       bursts: event === 'newyear' ? mv.newyear : mv.july4, fireworksOpacity: (1 - 0.75 * fog).toFixed(2),
       starsOpacity: (nightish * Math.pow(1 - cloud, 2) * (1 - 0.6 * moonLight)).toFixed(3),
@@ -400,8 +421,6 @@ export class Hero extends View {
       cloudColor: rgb(cloudCol),
       cloud1Opacity: (0.85 * sky.ss(0.25, 0.95, cloud) * (1 - 0.5 * fog)).toFixed(3),
       cloud2Opacity: (0.6 * sky.ss(0.5, 1, cloud) + 0.5 * fog).toFixed(3),
-      cloudDur1: Math.round(260 / (0.45 + 1.5 * wind.speedQ)) + 's', cloudDur2: Math.round(420 / (0.45 + 1.5 * wind.speedQ)) + 's',
-      cloudDir: wind.dir > 0 ? 'normal' : 'reverse',
       veilOpacity: (rain * (0.22 + 0.25 * dayish)).toFixed(3),
       veilColor: rgb(mix([[150, 158, 168], [170, 150, 140], [170, 150, 140], [70, 74, 92], [40, 38, 44]])),
       rainOpacity: (rain * (0.3 + 0.5 * dayish + 0.12 * eff[3] + 0.1 * on * nightish)).toFixed(3), rainTilt: tiltBox(tilt),

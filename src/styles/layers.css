@@ -22,8 +22,6 @@
 @keyframes lk-flash{0%,100%{opacity:.25}40%{opacity:1}70%{opacity:.5}}
 
 .lk-anim .lk-stage{animation:lk-drift 90s ease-in-out infinite alternate}
-.lk-anim .lk-pan{animation:lk-pan 260s linear infinite}
-.lk-anim .lk-pan-b{animation:lk-pan 420s linear infinite}
 .lk-anim .lk-veilpan{animation:lk-pan 110s linear infinite}
 .lk-anim .lk-fogmove{animation:lk-fog 80s ease-in-out infinite alternate}
 .lk-anim .lk-blink{animation:lk-blink 3s steps(1,end) infinite}

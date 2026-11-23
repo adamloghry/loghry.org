@@ -285,6 +285,24 @@ if (want('motion')) {
   await o.ctx.close();
 }
 lap('motion');
+// ---- clouds drift smoothly with the wind (owner, 2026-11-22) ----
+if (want('clouds')) {
+  const sample = async (reduced) => {
+    const o = await open({ viewport: VIEWPORTS.desktop, hash: 't=2026-11-22T14:00&sky=cloudy' }, { reduced });
+    const xs = await o.page.evaluate(() => new Promise((done) => {
+      const out = [], el = () => document.querySelector('[data-cloud="1"]');
+      const tick = () => { const e = el(); out.push(e ? parseFloat((/translateX\((-?[\d.]+)%\)/.exec(e.style.transform) || [0, 'NaN'])[1]) : NaN); out.length < 40 ? requestAnimationFrame(tick) : done(out); };
+      requestAnimationFrame(tick);
+    }));
+    await o.ctx.close();
+    return xs;
+  };
+  const xs = await sample(false), steps = xs.slice(1).map((x, i) => Math.abs(x - xs[i]));
+  ok('clouds drift', xs.every(Number.isFinite) && Math.abs(xs.at(-1) - xs[0]) > 0 && Math.max(...steps) < 0.05, `cloud layer moves ${Math.abs(xs.at(-1) - xs[0]).toFixed(4)}% over 40 frames, largest step ${Math.max(...steps).toFixed(4)}%`);
+  const still = await sample(true);
+  ok('clouds still when reduced', still.every((x) => !Number.isFinite(x) || x === still[0]), 'no drift under reduced motion');
+}
+lap('clouds');
 lap('controls');
 // ---- accessibility (axe-core, WCAG 2 A/AA + best practice) ----
 if (want('axe')) {

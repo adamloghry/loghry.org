@@ -65,6 +65,12 @@ export function lapseMoment(kind: 'day' | 'year', base: number, elapsed: number)
 /** Dragging the photo: one full width moves twelve hours; right is later. */
 export const dragMinutes = (dx: number, width: number): number => Math.round(dx / width * 720);
 
+/** Cloud drift in loops per second for the wind (one loop is half the cloud layer's width; the handoff's CSS ran
+ *  260 s / (0.45 + 1.5 speedQ) per loop). Signed by the wind's flow, so a turning wind slows the clouds through calm. */
+export function cloudVelocity(wind: { speedQ: number; flow: number }): number {
+  return wind.flow * (0.45 + 1.5 * wind.speedQ) / 260;
+}
+
 export const sky: any = {
   _ev: null,
   cl(x) { return Math.max(0, Math.min(1, x)); },
@@ -178,35 +184,52 @@ export const sky: any = {
   },
   vnoise(t, seed) { const i = Math.floor(t), f = t - i, u = (1 - Math.cos(f * Math.PI)) / 2; return this.hash(i, seed) * (1 - u) + this.hash(i + 1, seed) * u; },
   weather(ms, p, doy, ev) {
-    const c = this.clim(doy), key = p.y * 400 + doy, T = ms / 3600000, hr = p.h + p.mi / 60;
-    const snowDay = this.hash(key, 8) < c.snowDays / 30.4;
-    const rainy = !snowDay && this.hash(key, 1) < c.rainDays / 30.4;
+    const c = this.clim(doy), T = ms / 3600000, hr = p.h + p.mi / 60;
+    // Day-level dice (rain day, snow day, cloud offset, morning stratus, smoke, fair northerly) are rolled per Seattle
+    // date and blended with the neighbouring day from 21:00 to 03:00, so nothing switches at midnight (owner, 2026-11-22).
+    // each day's dice use that day's own month and day of year (not today's), or they disagree across a month boundary
+    const dayOf = (k) => { const t = Date.UTC(p.y, p.mo - 1, p.d + k), dt = new Date(t), y = dt.getUTCFullYear(), dy = Math.round((t - Date.UTC(y, 0, 0)) / 86400000); return { key: y * 400 + dy, mo: dt.getUTCMonth() + 1, doy: dy }; };
+    const dice = ({ key, mo, doy }) => {
+      const ck = this.clim(doy);   // that day's normals, so a day never flips between rainy and dry at midnight
+      const snowDay = this.hash(key, 8) < ck.snowDays / 30.4, rainy = !snowDay && this.hash(key, 1) < ck.rainDays / 30.4;
+      return {
+        S: snowDay ? 1 : 0, R: rainy ? 1 : 0, off: 0.5 * (this.hash(key, 4) - 0.5),
+        St: mo >= 5 && mo <= 8 && this.hash(key, 7) < 0.5 ? 1 : 0,
+        H: doy > 205 && doy < 275 && !rainy && this.hash(key, 9) < 0.11 ? 0.7 : 0,     // late-summer wildfire smoke, ~8 days a year
+        F: mo >= 5 && mo <= 9 && !rainy ? 1 : 0,                                    // fair summer day: northerly breeze
+      };
+    };
+    const today = dice(dayOf(0));
+    const w = hr >= 12 ? this.ss(21, 27, hr) : 1 - this.ss(-3, 3, hr), other = dice(dayOf(hr >= 12 ? 1 : -1));
+    const mix = (f) => today[f] * (1 - w) + other[f] * w;
+    const R = mix('R'), S = mix('S'), St = mix('St'), H = mix('H'), F = mix('F');
     const wet = this.ss(0.40, 0.72, this.vnoise(T / 3, 2));
-    const rain = rainy ? wet : 0, snowing = snowDay ? wet : 0;
-    let cloud = 1 - c.sun / 100 + 0.45 * (this.vnoise(T / 6, 3) - 0.5) + 0.5 * (this.hash(key, 4) - 0.5);
-    if (rainy) cloud = Math.max(cloud, 0.85);
-    if (snowDay) cloud = Math.max(cloud, 0.9);
-    if (rain > 0.05 || snowing > 0.05) cloud = 1;
-    if (p.mo >= 5 && p.mo <= 8 && this.hash(key, 7) < 0.5) cloud = Math.max(cloud, 0.9 * this.ss(11.5, 9.5, hr));   // marine stratus mornings
+    const rain = R * wet, snowing = S * wet;
+    let cloud = 1 - c.sun / 100 + 0.45 * (this.vnoise(T / 6, 3) - 0.5) + mix('off');
+    cloud += R * Math.max(0, 0.85 - cloud);
+    cloud += S * Math.max(0, 0.9 - cloud);
+    // overcast on rain and snow days, a little more as it pours (the handoff jumped to 1 as rain rose 0.02 -> 0.1)
+    cloud = Math.max(cloud, this.cl(R + S) * (0.85 + 0.15 * this.ss(0, 0.3, rain + snowing)));
+    // marine stratus mornings: builds in the small hours, burns off late morning (the handoff switched it on at 00:00)
+    cloud = Math.max(cloud, St * 0.9 * this.ss(1, 4, hr) * this.ss(11.5, 9.5, hr));
     cloud = this.cl(cloud);
     let fog = 0;
-    if (!snowDay && ev.rise != null && this.hash(key, 5) < c.fogDays * 1.8 / 30.4) {
+    if (today.S < 1 && ev.rise != null && this.hash(dayOf(0).key, 5) < c.fogDays * 1.8 / 30.4) {
       const sr = ev.rise / 60, burn = 2.5 + 2 * (1 - c.sun / 65);
-      fog = this.ss(sr - 6, sr - 3, hr) * this.ss(sr + burn + 1.5, sr + burn, hr) * (0.65 + 0.35 * this.hash(key, 6)) * (1 - rain);
+      fog = this.ss(Math.max(sr - 6, 0.25), sr - 3, hr) * this.ss(sr + burn + 1.5, sr + burn, hr) * (0.65 + 0.35 * this.hash(dayOf(0).key, 6)) * (1 - rain);
     }
-    // late-summer wildfire smoke: some hazy days in August and September
-    const haze = (doy > 205 && doy < 275 && !rainy && this.hash(key, 9) < 0.11) ? 0.7 : 0;   // about 8 heavy-smoke days a year
+    const haze = H;
     const sr = ev.rise != null ? ev.rise / 60 : 7.5, peak = 15;
     let shape;
     if (hr >= sr && hr <= peak) shape = (1 - Math.cos(Math.PI * (hr - sr) / (peak - sr))) / 2;
     else { const span = 24 - peak + sr, x = ((hr - peak + 24) % 24) / span; shape = (1 + Math.cos(Math.PI * x)) / 2; }
-    let temp = c.lo + (c.hi - c.lo) * shape;
-    if (snowDay) temp = 28 + 5 * shape;
-    // wind: storms blow from the south; fair summer days from the north. Cloud speed only changes every six hours.
-    const summerFair = p.mo >= 5 && p.mo <= 9 && !rainy;
-    const speed = this.cl(0.15 + (rainy ? 0.3 : 0) + 0.4 * this.vnoise(T / 5, 11) + ((p.mo >= 11 || p.mo <= 2) ? 0.1 : 0));
-    const speedQ = this.cl(0.2 + 0.55 * this.hash(key * 4 + Math.floor(hr / 6), 12) + (rainy ? 0.2 : 0));
-    return { cloud, rain, fog, temp, snowCover: snowDay ? 1 : 0, snowing, haze, wind: { speed, speedQ, dir: summerFair ? -1 : 1 } };
+    const temp = (c.lo + (c.hi - c.lo) * shape) * (1 - S) + (28 + 5 * shape) * S;
+    // Wind: storms blow from the south, fair summer days from the north. flow is signed (+1 southerly, -1 northerly) and
+    // passes through calm when the wind turns; speedQ (cloud speed) drifts smoothly instead of stepping every 6 hours.
+    const speed = this.cl(0.15 + 0.3 * R + 0.4 * this.vnoise(T / 5, 11) + ((p.mo >= 11 || p.mo <= 2) ? 0.1 : 0));
+    const speedQ = this.cl(0.2 + 0.55 * this.vnoise(T / 6, 12) + 0.2 * R);
+    const flow = 1 - 2 * F;
+    return { cloud, rain, fog, temp, snowCover: S, snowing, haze, wind: { speed, speedQ, flow, dir: flow >= 0 ? 1 : -1 } };
   },
   windowsAt(hr) {
     // share of windows lit: offices + homes in the evening, most homes dark after midnight, early risers before dawn

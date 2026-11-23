@@ -114,14 +114,14 @@
 
 <sc-if value="{{show.cloud1}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{cloud1Opacity}}">
-<div class="lk-pan" style="position: absolute; left: 0; top: -6%; width: 200%; height: 70%; animation-duration: {{cloudDur1}}; animation-direction: {{cloudDir}}">
+<div data-cloud="1" style="position: absolute; left: 0; top: -6%; width: 200%; height: 70%; will-change: transform">
 <div class="lk-cloud1 lk-fade" style="position: absolute; inset: 0; background-color: {{cloudColor}}"></div>
 </div>
 </div>
 </sc-if>
 <sc-if value="{{show.cloud2}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{cloud2Opacity}}">
-<div class="lk-pan-b" style="position: absolute; left: 0; top: 30%; width: 200%; height: 80%; animation-duration: {{cloudDur2}}; animation-direction: {{cloudDir}}">
+<div data-cloud="2" style="position: absolute; left: 0; top: 30%; width: 200%; height: 80%; will-change: transform">
 <div class="lk-cloud2 lk-fade" style="position: absolute; inset: 0; background-color: {{cloudColor}}"></div>
 </div>
 </div>
@@ -129,7 +129,7 @@
 
 <sc-if value="{{show.rain}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{veilOpacity}}">
-<div class="lk-veilpan" style="position: absolute; left: 0; top: 0; width: 200%; height: 100%; animation-direction: {{cloudDir}}">
+<div class="lk-veilpan" style="position: absolute; left: 0; top: 0; width: 200%; height: 100%; animation-direction: {{veilDir}}">
 <div class="lk-rv lk-fade" style="position: absolute; inset: 0; background-color: {{veilColor}}"></div>
 </div>
 </div>

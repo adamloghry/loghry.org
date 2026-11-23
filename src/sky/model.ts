@@ -136,6 +136,22 @@ export function officeFloorsLit(hour: number, dow: number): number[] {
   });
 }
 
+// SKYLINE LIGHTING (owner, 2026-11-23): reference dates for 2026 and the 2027 dates known so far. Review yearly
+// (LIGHTING_REVIEWED; tests/upkeep.mjs warns). The Needle's lighting calendar is not published; these follow its habits.
+export const LIGHTING_REVIEWED = 2026;
+// Seattle Seahawks 2026 regular-season home games at Lumen Field (seahawks.com, 2026-05-19). 2027 schedule not out yet.
+const SEAHAWKS_HOME = ['2026-09-09', '2026-10-04', '2026-10-11', '2026-10-25', '2026-11-02', '2026-11-08', '2026-12-07', '2026-12-13', '2026-12-25'];
+// Seattle Pride Parade weekends (the parade is on the last Sunday of June): Fri-Sun.
+const PRIDE = ['2026-06-26', '2026-06-27', '2026-06-28', '2027-06-25', '2027-06-26', '2027-06-27'];
+/** What special lighting the skyline shows on a Seattle date and hour. needle: Space Needle halo colours; kingTree:
+ *  the KING 5 tower on Queen Anne, lit as a holiday tree through December (a tradition since the 1950s). */
+export function skylineLighting(y: number, mo: number, d: number, h: number): { needle: 'seahawks' | 'pride' | null; kingTree: boolean } {
+  const key = `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const evening = h >= 16;
+  const needle = evening && SEAHAWKS_HOME.includes(key) ? 'seahawks' : evening && PRIDE.includes(key) ? 'pride' : null;
+  return { needle, kingTree: mo === 12 || (mo === 1 && d === 1) };
+}
+
 export const sky: any = {
   _ev: null,
   cl(x) { return Math.max(0, Math.min(1, x)); },

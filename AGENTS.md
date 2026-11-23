@@ -83,6 +83,7 @@ ships WebKit/Firefox for Playwright on Linux only); Bombadil uses Chromium. All 
 | Calendar events | `sky.calendar` in `src/sky/model.ts`; bump `CALENDAR_REVIEWED` | Yearly; `tests/upkeep.mjs` warns |
 | Weather normals | `NORMALS`, `NORMALS_PERIOD` in `model.ts` | When NOAA publishes 2001-2030 (~2031) |
 | Photo credit | `SITE.photo` in `src/site.ts` | Only if the photo changes |
+| Skyline lighting dates (Seahawks home games, Pride weekend) | `SEAHAWKS_HOME`, `PRIDE` in `model.ts`; bump `LIGHTING_REVIEWED` | Yearly, when the season schedule is out; `tests/upkeep.mjs` warns |
 | Ferry, seaplane and arrival patterns (typical, not timetables) | `FERRY_ROUTES`, `seaplaneAt`, `ARRIVALS` in `model.ts`; bump `SCHEDULES_REVIEWED` | Yearly; `tests/upkeep.mjs` warns |
 
 ## Deploy

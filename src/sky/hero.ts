@@ -1,11 +1,12 @@
 // @ts-nocheck — ported from the design canvas; the model it calls is unit-tested
 // The hero: turns the model's numbers into layer opacities, colours and moving things, and draws them through the template.
 import template from './hero.html?raw';
-import { sky, trafficLevel, lapseMoment, dragMinutes, LAPSE_MS, cloudVelocity, ferriesAt, seaplaneAt, aircraftAt, FERRY_VISIBLE_S, AIRCRAFT_VISIBLE_S, officeFloorsLit } from './model';
+import { sky, trafficLevel, lapseMoment, dragMinutes, LAPSE_MS, cloudVelocity, ferriesAt, seaplaneAt, aircraftAt, FERRY_VISIBLE_S, AIRCRAFT_VISIBLE_S, officeFloorsLit, skylineLighting } from './model';
 import { View } from './view';
 import { assets } from './assets';
 import i5Lanes from './i5_lanes.json';
-import beaconList from './beacons.json';   // red obstruction lights on real structures (bake/osm/beacons.py)   // map data (c) OpenStreetMap contributors, ODbL
+import beaconList from './beacons.json';
+import marks from './landmarks.json';   // Needle saucer, KING 5 tower (bake/osm/beacons.py)   // red obstruction lights on real structures (bake/osm/beacons.py)   // map data (c) OpenStreetMap contributors, ODbL
 
 export { template };
 
@@ -380,6 +381,7 @@ export class Hero extends View {
         rainbow: rainbowOpacity > 0.02, ripples: fog < 0.6 && rain < 0.08, glitter: glit > 0.03, rings: rain > 0.08,
         lights: on > 0.01, bloom: on > 0.05 && (rain > 0.2 || fog > 0.2 || snowCover > 0), holiday: holiday && on > 0.05, drawn: drawn && on > 0.05,
         boats: fog < 0.7, ferries: fog < 0.8, sails: event === 'duckdodge', plane: planeOn,
+        needleColor: on > 0.3 && !!skylineLighting(p.y, p.mo, p.d, p.h).needle, kingTree: on > 0.3 && skylineLighting(p.y, p.mo, p.d, p.h).kingTree,
         cars: !still && on > 0.05, dayCars: !still && on < 0.95, beacons: on > 0.1,
         fireworks: fwOn, fwLake: event === 'july4',
         stars: nightish > 0.3 && cloud < 0.7 && fog < 0.3,
@@ -416,7 +418,15 @@ export class Hero extends View {
       // fog swallows traffic (owner, 2026-11-23: cars must not show through it)
       dayCarsOpacity: ((1 - sky.ss(0.05, 0.6, on)) * (1 - sky.ss(0.1, 0.6, fog))).toFixed(3),
       carsOpacity: (sky.ss(0.05, 0.6, on) * (1 - 0.85 * sky.ss(0.1, 0.6, fog))).toFixed(3),
-      beacons: beaconList.map((b, k) => ({ name: b.name, x: b.x, y: b.y, style: 'position:absolute;left:' + (b.x - b.size / 2) + 'px;top:' + (b.y - b.size / 2) + 'px;width:' + b.size + 'px;height:' + b.size + 'px;border-radius:50%;background:#ff3b2f;box-shadow:0 0 ' + (2 * b.size) + 'px ' + (b.size - 1) + 'px rgba(255,59,47,.65);animation-delay:-' + (k * 0.55).toFixed(2) + 's' })),
+      // in the photo's own cloud a beacon is a larger, softer, dimmer glow (owner, 2026-11-23)
+      beacons: beaconList.map((b, k) => { const hz = b.haze || 0, sz = b.size * (1 + 1.5 * hz); return { name: b.name, x: b.x, y: b.y, style: 'position:absolute;left:' + (b.x - sz / 2).toFixed(1) + 'px;top:' + (b.y - sz / 2).toFixed(1) + 'px;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) + 'px;border-radius:50%;background:#ff3b2f;box-shadow:0 0 ' + (2 * sz).toFixed(1) + 'px ' + (sz - 1).toFixed(1) + 'px rgba(255,59,47,.65);opacity:' + (1 - 0.6 * hz).toFixed(2) + (hz > 0.05 ? ';filter:blur(' + (1.5 * hz).toFixed(2) + 'px)' : '') + ';animation-delay:-' + (k * 0.55).toFixed(2) + 's' }; }),
+      ...(() => { const L = skylineLighting(p.y, p.mo, p.d, p.h), [nx, ny] = marks.needleSaucer, [kx, ky] = marks.kingTop, [, kb] = marks.kingBase;
+        return {
+          needleClass: 'lk-needle' + (L.needle ? ' lk-needle-' + L.needle : ''),
+          needleStyle: 'position:absolute;left:' + (nx - 9).toFixed(1) + 'px;top:' + (ny - 2.5).toFixed(1) + 'px;width:18px;height:5px;border-radius:50%',
+          kingStyle: 'position:absolute;left:' + (kx - (kb - ky) * 0.22).toFixed(1) + 'px;top:' + ky.toFixed(1) + 'px;width:' + ((kb - ky) * 0.44).toFixed(1) + 'px;height:' + (kb - ky).toFixed(1) + 'px;opacity:' + (0.9 - 0.55 * (marks.kingHaze || 0)).toFixed(2) + ';filter:blur(' + (0.4 + 1.2 * (marks.kingHaze || 0)).toFixed(2) + 'px)',
+          lighting: L,
+        }; })(),
       beaconOpacity: (0.9 * sky.ss(0.1, 0.7, on)).toFixed(3),
       veilDir: wind.flow >= 0 ? 'normal' : 'reverse',   // the rain veil drifts with the wind
       // downtown office floors in eight groups on their own clock (owner, 2026-11-22); lit only when the city lights are on

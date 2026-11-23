@@ -3,36 +3,49 @@
   "name": "Space Needle",
   "x": 1080,
   "y": 252,
-  "size": 4
+  "size": 4,
+  "haze": 0.0
  },
  {
   "name": "Columbia Center",
   "x": 630,
   "y": 225,
-  "size": 4
+  "size": 4,
+  "haze": 0.0
  },
  {
   "name": "KOMO-TV tower, Queen Anne",
   "x": 1358,
   "y": 258,
-  "size": 3
+  "size": 3,
+  "haze": 1.0
  },
  {
   "name": "KING-TV tower, Queen Anne",
   "x": 1270,
   "y": 271,
-  "size": 3
+  "size": 3,
+  "haze": 0.74
  },
  {
   "name": "KCTS/KUOW mast, Capitol Hill",
-  "x": 160,
-  "y": 337,
-  "size": 3
+  "x": 157,
+  "y": 320,
+  "size": 3,
+  "haze": 0.0
  },
  {
   "name": "KTZZ mast, Capitol Hill",
-  "x": 146,
-  "y": 340,
-  "size": 3
+  "x": 143,
+  "y": 327,
+  "size": 3,
+  "haze": 0.0
+ },
+ {
+  "name": "Capitol Hill mast (third)",
+  "x": 169,
+  "y": 325,
+  "size": 3,
+  "haze": 0.0
  }
 ]

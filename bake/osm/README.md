@@ -26,3 +26,10 @@ Map data © OpenStreetMap contributors, available under the Open Database Licens
 https://www.openstreetmap.org/copyright. `roadsamples.json` and `src/sky/i5_lanes.json` are derived from it and are
 offered under the ODbL; the site credits OpenStreetMap in the gear panel and the almanac footer.
 Terrain: Terrain Tiles (Mapzen / AWS Open Data; USGS 3DEP and others).
+
+## Far field: tried, not adopted (2026-11-23)
+
+Adding Elliott Bay's far shore (West Seattle, Harbor Island, Magnolia) to the fit pulls it toward the bay but costs the
+near field (Gas Works 7, I-5 deck up to 6, Columbia Center top 5 thousandths), and a second radial distortion term
+did not reconcile them. The camera stays fitted to the near and middle field, where the roads and beacons are;
+far-field things (ferries, ships at anchor) are placed by eye on the photo. Elliott Bay projections run ~0.015 low.

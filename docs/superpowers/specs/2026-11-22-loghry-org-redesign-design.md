@@ -340,7 +340,13 @@ do not push.
   line to the moon) - rainy night 16 -> 22 fps. No adaptive 'lite' mode:
   gains too small for the complexity; GPUs composite these cheaply.
   Performance budget in verify.mjs ('perf') and visual regression snapshots
-  (scripts/visual.mjs, 0.05% budget, deterministic locally).
+  (scripts/visual.mjs, 0.005% budget: GitHub's runner matches emma to 0.002%).
+
+- 2026-11-23: Eastlake Ave E re-traced on the street in the photo and smoothed
+  (it was a straight diagonal): up from the Eastlake shops, bending right near
+  the old Steam Plant, between the plant and I-5 toward downtown; stops where
+  the street disappears under the photo's clouds. Half strength, like the
+  other arterials.
 
 ## Left to the builder
 

@@ -2,7 +2,7 @@
 //   npm run build && node scripts/visual.mjs            compare (non-zero exit on a difference)
 //   npm run build && node scripts/visual.mjs --update   accept the current look as the new baselines (commit them)
 // Deterministic: reduced motion (nothing mid-animation; clouds and boats hold still), fixed moments and sizes, the
-// page's own fonts. Compared at half size, so baselines stay small; a state fails when more than 0.05% of its pixels
+// page's own fonts. Compared at half size, so baselines stay small; a state fails when more than 0.005% of its pixels
 // differ noticeably. Diff images go to tmp/visual/.
 import { chromium } from 'playwright';
 import pixelmatch from 'pixelmatch';
@@ -55,8 +55,8 @@ for (const [name, viewport, path] of SNAPSHOTS) {
   const diff = new PNG({ width: shot.width, height: shot.height });
   const n = pixelmatch(base.data, shot.data, diff.data, shot.width, shot.height, { threshold: 0.12 });
   const share = n / (shot.width * shot.height);
-  if (share > 0.0005) { await writeFile(OUT + name + '-diff.png', PNG.sync.write(diff)); await writeFile(OUT + name + '-now.png', PNG.sync.write(shot)); failed++; }
-  console.log(`${share > 0.0005 ? 'FAIL' : 'PASS'} visual ${name}  ${(share * 100).toFixed(3)}% of pixels differ (budget 0.05%)`);
+  if (share > 0.00005) { await writeFile(OUT + name + '-diff.png', PNG.sync.write(diff)); await writeFile(OUT + name + '-now.png', PNG.sync.write(shot)); failed++; }
+  console.log(`${share > 0.00005 ? 'FAIL' : 'PASS'} visual ${name}  ${(share * 100).toFixed(3)}% of pixels differ (budget 0.005%)`);
 }
 await browser.close(); await srv.close();
 if (!update) console.log(failed ? `\n${failed} failed; diffs in tmp/visual/. If the change is intended: node scripts/visual.mjs --update` : '\nall passed');

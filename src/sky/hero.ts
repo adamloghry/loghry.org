@@ -1,7 +1,7 @@
 // @ts-nocheck — ported from the design canvas; the model it calls is unit-tested
 // The hero: turns the model's numbers into layer opacities, colours and moving things, and draws them through the template.
 import template from './hero.html?raw';
-import { sky, trafficLevel, lapseMoment, dragMinutes, LAPSE_MS, cloudVelocity, ferriesAt, seaplaneAt, aircraftAt, FERRY_VISIBLE_S, AIRCRAFT_VISIBLE_S } from './model';
+import { sky, trafficLevel, lapseMoment, dragMinutes, LAPSE_MS, cloudVelocity, ferriesAt, seaplaneAt, aircraftAt, FERRY_VISIBLE_S, AIRCRAFT_VISIBLE_S, officeFloorsLit } from './model';
 import { View } from './view';
 import { assets } from './assets';
 
@@ -414,6 +414,8 @@ export class Hero extends View {
       carsOpacity: sky.ss(0.05, 0.6, on).toFixed(3),
       beaconOpacity: (0.9 * sky.ss(0.1, 0.7, on)).toFixed(3),
       veilDir: wind.flow >= 0 ? 'normal' : 'reverse',   // the rain veil drifts with the wind
+      // downtown office floors in eight groups on their own clock (owner, 2026-11-22); lit only when the city lights are on
+      towers: officeFloorsLit(p.h + p.mi / 60, dow).map((lit, k) => ({ src: assets['towers_g' + k], opacity: (on * lit).toFixed(3) })),
       // Washington State Ferries in Elliott Bay on a typical sailing pattern (owner, 2026-11-22): hulls by day, lights by night.
       ferries: fog < 0.8 ? ferriesAt(ms).map((f) => {
         const path = { bainbridge: 'M813.6 250.6 L960 248 L1110 244 L1260 240 L1440 236', bremerton: 'M813.6 250.6 L960 240 L1110 228 L1260 215 L1440 200' }[f.route];

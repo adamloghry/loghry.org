@@ -19,3 +19,11 @@ K = 0.7
 save('plate_blue_lit', scr(scr(scr(blue, st * K), wn * 0.9 * K), bl * 0.16 * K), 56)
 save('plate_night_eve', scr(scr(scr(night, st * K), wn * K), bl * 0.2 * K), 58)
 save('plate_night_late', scr(scr(scr(night, st * K), wn * 0.32 * K), bl * 0.14 * K), 58)
+# Office floors, one transparent layer per group (shown over the plates by the page, alpha over a dark tower ~ screen).
+for k in range(8):
+    e = L(f'towers_g{k}.png') * K
+    a = np.clip(e.max(-1), 0, 1)
+    rgb = np.where(a[..., None] > 1e-4, e / np.maximum(a[..., None], 1e-4), 0)
+    im = Image.fromarray((np.dstack([np.clip(rgb, 0, 1), a]) * 255 + .5).astype(np.uint8), 'RGBA')
+    im.save(os.path.join(OUT, f'towers_g{k}.webp'), 'WEBP', quality=82, method=6)
+    print(f'towers_g{k}', os.path.getsize(os.path.join(OUT, f'towers_g{k}.webp')))

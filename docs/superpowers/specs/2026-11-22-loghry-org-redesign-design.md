@@ -318,6 +318,21 @@ do not push.
   reduced motion. Dragging the photo sideways scrubs time (full width = 12 h,
   right is later) with momentum, opening the time panel.
 
+- 2026-11-22: the living city.
+  - Weather is continuous: day-level dice blend from 21:00 to 03:00 with
+    each day's own normals; wind speed is smooth; the wind's flow turns
+    through calm. Fixed: stratus switched on at 00:00; cloud jumped to
+    overcast as rain began. Clouds drift by script, easing toward the wind.
+  - Ferries (Bainbridge, Bremerton), seaplanes (Kenmore Air-style) and night
+    airliners on typical schedules (`ferriesAt`, `seaplaneAt`, `aircraftAt`;
+    `SCHEDULES_REVIEWED`). Owner rule: no Blue Angels, ever.
+  - Office floors in eight baked groups (`towers_g0-7`), switching off from
+    5:15 PM to 10:30 PM and on from 6:30 to 8 AM on weekdays; one group all
+    night; offices mostly dark at weekends (`officeFloorsLit`).
+  - Not done: Mount Rainier. Calibrated on the Needle (bearing ~193 deg at
+    x 0.749) and Columbia Center (~178 deg at x ~0.43), the frame spans
+    ~158-204 deg; Rainier is at ~152 deg from Lake Union, outside the frame.
+
 ## Left to the builder
 
 - Exact Astro 7 / vitest 4 breakages and their minimal fixes (keep handoff

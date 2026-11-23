@@ -121,6 +121,21 @@ export function aircraftAt(ms: number): { id: string; kind: 'airliner'; lane: nu
   return out;
 }
 
+// OFFICES — downtown tower floors are baked in eight groups (bake/scripts/lights.py). Weekdays each group switches off
+// at its own evening time and on again in the morning, over ten minutes; the last group (cleaners, security, 24-hour
+// floors) never goes dark. Weekends the first four groups stay off. (owner, 2026-11-22)
+export const OFFICE_GROUPS = 8;
+const OFFICE_OFF = [17.25, 17.75, 18.25, 18.75, 19.5, 20.5, 22.5];
+const OFFICE_ON = [7.0, 6.75, 6.5, 7.25, 7.5, 7.75, 8.0];
+export function officeFloorsLit(hour: number, dow: number): number[] {
+  const r = 1 / 12, h = ((hour % 24) + 24) % 24, weekend = dow === 0 || dow === 6;
+  return Array.from({ length: OFFICE_GROUPS }, (_, k) => {
+    if (k === OFFICE_GROUPS - 1) return 1;
+    if (weekend && k < 4) return 0;
+    return sky.ss(OFFICE_ON[k] - r, OFFICE_ON[k] + r, h) * sky.ss(OFFICE_OFF[k] + r, OFFICE_OFF[k] - r, h);
+  });
+}
+
 export const sky: any = {
   _ev: null,
   cl(x) { return Math.max(0, Math.min(1, x)); },

@@ -37,6 +37,7 @@
 </sc-if>
 
 <sc-if value="{{show.lights}}">
+<sc-for list="{{towers}}" as="t"><img class="lk-plate" src="{{t.src}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: {{t.opacity}}"></sc-for>
 <sc-if value="{{show.holiday}}"><picture><source type="image/avif" srcset="{{a.holiday_avif}}"><img class="lk-plate" src="{{a.holiday}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; opacity: {{holidayOpacity}}"></picture></sc-if>
 <sc-if value="{{show.bloom}}"><img class="lk-plate" src="{{a.bloom}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; opacity: {{bloomOpacity}}"></sc-if>
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; background: radial-gradient(38% 16% at 50% 13%, rgba(255,176,120,.3), rgba(255,176,120,0)); opacity: {{skyGlowOpacity}}"></div>

@@ -300,8 +300,14 @@ tcol = np.where((fam < 0.6)[..., None], C['office'], np.where((fam < 0.85)[..., 
 tint = 0.8 + 0.4 * rt.random((nf, nb + 1))[fi, lab]
 tower_em = lit[..., None] * tcol * ((tower ** 1.2) * gain[lab] * tint)[..., None]
 tower_em = np.stack([ndi.gaussian_filter(tower_em[..., c], 0.45) for c in range(3)], -1)
-windows += tower_em * 1.1
-print('downtown towers', nb)
+# Office floors are not baked into the night plates any more: they go out in eight groups through the evening and
+# come back before dawn (owner, 2026-11-22). Each (building, floor) is dealt into a group from its own stream, so the
+# rest of the city is unchanged; the page fades each group by model.ts officeFloorsLit().
+OFFICE_GROUPS = 8
+rg = np.random.default_rng(35)
+group = np.floor(rg.random((nf, nb + 1)) * OFFICE_GROUPS).astype(int)[fi, lab]
+tower_groups = [tower_em * 1.1 * (group == k)[..., None] for k in range(OFFICE_GROUPS)]
+print('downtown towers', nb, 'office groups', OFFICE_GROUPS)
 # tower crowns stay lit all night (architectural lighting) -> street layer
 crown = tower * (ndi.binary_erosion(tower > 0.3, structure=np.ones((4, 1))) == 0) * (tower > 0.3)
 streets += np.stack([ndi.gaussian_filter(crown.astype(np.float32), 0.8)] * 3, -1) * C['office'] * 0.35
@@ -337,6 +343,8 @@ def save(name, a, q=86):
 
 S = tone(finish(streets)); Wn = tone(finish(windows))
 save('streets.jpg', S); save('windows.jpg', Wn)
+for k, em in enumerate(tower_groups):   # lossless masters; lit.py turns them into transparent layers
+    Image.fromarray((np.clip(tone(finish(em)), 0, 1) * 255 + .5).astype(np.uint8)).save(os.path.join(OUT, f'towers_g{k}.png'))
 both = 1 - (1 - S) * (1 - Wn)
 save('lights.jpg', both)
 bloom = blur3(both, N * 0.009)

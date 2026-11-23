@@ -66,6 +66,7 @@ ships WebKit/Firefox for Playwright on Linux only); Bombadil uses Chromium. All 
   typical, not a forecast.
 - **No Blue Angels, ever** (owner): no airshow or display flying, no Seafair event, only scheduled traffic
   (`aircraftAt` draws airliners only). `tests/unit/schedules.test.ts` guards it.
+- **No Mount Rainier**: it is ~6 degrees left of the frame (see the spec); "the mountain is out" is only a status remark.
 - **Fixed camera**, **no sound**, **no named relatives or dates**. The owner's own name (humans.txt) is fine.
 - Nothing shipped mentions the retired `akl.io`, analytics, or keybase (`S-BANNED`).
 

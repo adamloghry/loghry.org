@@ -29,11 +29,12 @@ export class Hero extends View {
     const sb = "M-12.6 1046.1 L30.8 1009.7 L81.2 937.4 L131.4 865.3 L188.8 793.2 L238.9 721.1 L310.8 649.0 L361.0 576.9 L432.7 512.0 L504.6 458.6 L555.0 418.1 L576.6 377.5 L588.0 338.5 L598.0 295.3 L605.1 259.3";
     const an = "M1303.0 532.2 L1367.8 548.0 L1411.0 562.4 L1468.6 576.9", as = "M1469.0 575.1 L1411.4 560.8 L1368.2 546.4 L1303.4 530.6";
     let sd = 9; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
-    const car = (path, kf, ease, dur, delay, head) => ({ style: 'position:absolute;left:0;top:0;width:' + (head ? 4 : 3) + 'px;height:' + (head ? 4 : 3) + 'px;margin:-2px 0 0 -2px;border-radius:50%;background:' + (head ? '#f6f8ff' : '#ff3a24') + ';box-shadow:0 0 6px 2px ' + (head ? 'rgba(240,244,255,.75)' : 'rgba(255,50,30,.65)') + ';offset-path:path(\'' + path + '\');offset-rotate:0deg;animation:' + kf + ' ' + dur + 's ' + ease + ' infinite;animation-delay:-' + delay.toFixed(2) + 's' });
+    // Owner, 2026-11-22: subtler traffic. Small, dim points (were 4/3 px with a 6 px glow at .65-.75), fewer and slower.
+    const car = (path, kf, ease, dur, delay, head) => ({ style: 'position:absolute;left:0;top:0;width:' + (head ? 3 : 2) + 'px;height:' + (head ? 3 : 2) + 'px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:' + (head ? '#e8ebf2' : '#e0402e') + ';box-shadow:0 0 3px 1px ' + (head ? 'rgba(240,244,255,.4)' : 'rgba(255,50,30,.38)') + ';offset-path:path(\'' + path + '\');offset-rotate:0deg;animation:' + kf + ' ' + dur + 's ' + ease + ' infinite;animation-delay:-' + delay.toFixed(2) + 's' });
     const cars = [];
-    for (let i = 0; i < 26; i++) cars.push(car(nb, 'lk-in', 'cubic-bezier(.55,0,.9,.6)', 36, (i + rnd() * 0.7) * 36 / 26, true));
-    for (let i = 0; i < 24; i++) cars.push(car(sb, 'lk-out', 'cubic-bezier(.1,.4,.45,1)', 38, (i + rnd() * 0.7) * 38 / 24, false));
-    for (let i = 0; i < 5; i++) { cars.push(car(an, 'lk-in', 'linear', 7, i * 1.4 + rnd(), true)); cars.push(car(as, 'lk-out', 'linear', 7, i * 1.4 + rnd(), false)); }
+    for (let i = 0; i < 14; i++) cars.push(car(nb, 'lk-in', 'cubic-bezier(.55,0,.9,.6)', 64, (i + rnd() * 0.7) * 64 / 14, true));    // was 26 cars, 36 s
+    for (let i = 0; i < 13; i++) cars.push(car(sb, 'lk-out', 'cubic-bezier(.1,.4,.45,1)', 68, (i + rnd() * 0.7) * 68 / 13, false));  // was 24 cars, 38 s
+    for (let i = 0; i < 2; i++) { cars.push(car(an, 'lk-in', 'linear', 14, i * 7 + rnd() * 2, true)); cars.push(car(as, 'lk-out', 'linear', 14, i * 7 + rnd() * 2, false)); } // Aurora: was 5 each way, 7 s
 
     // boats on the lake and the Ship Canal: slow, with a wake by day and a single light by night
     const lanes = [

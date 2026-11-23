@@ -243,6 +243,15 @@ do not push.
 - 2026-11-22: drop the "loghry.org" wordmark from the top left; the
   coordinates chip stays top right (`.lk-top` is `flex-end`). Asserted per
   state by `verify.mjs` (`top-bar`).
+- 2026-11-22: roads and night light. Northlake starts at the foot of Gas Works
+  (it ran out across the bay); Westlake is retraced along the building line,
+  inland of the marina band the water mask misses; the straight Mercer trace
+  to the Needle is removed. Water reflections are half as strong (0.9 to 0.45)
+  and city lights are composited at 0.7 of the handoff's strength (night
+  highlights -18%). Cars: I-5 14/13 cars at 64/68 s (were 26/24 at 36/38 s),
+  Aurora 2 each way at 14 s (were 5 at 7 s), 3/2 px with a 3 px glow at
+  0.4 alpha (were 4/3 px, 6 px at 0.65-0.75). Pinned by tests/unit/cars.test.ts;
+  the bake changes were checked by eye against the photo and water mask.
 
 ## Left to the builder
 

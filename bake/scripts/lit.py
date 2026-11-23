@@ -14,6 +14,8 @@ def save(name, a, q):
     im = Image.fromarray((np.clip(a, 0, 1) * 255 + .5).astype(np.uint8))
     im.save(os.path.join(OUT, name + '.avif'), 'AVIF', quality=q, speed=4); im.save(os.path.join(OUT, name + '.webp'), 'WEBP', quality=q + 22, method=6)
     print(name, os.path.getsize(os.path.join(OUT, name + '.avif')), os.path.getsize(os.path.join(OUT, name + '.webp')))
-save('plate_blue_lit', scr(scr(scr(blue, st), wn * 0.9), bl * 0.16), 56)
-save('plate_night_eve', scr(scr(scr(night, st), wn), bl * 0.2), 58)
-save('plate_night_late', scr(scr(scr(night, st), wn * 0.32), bl * 0.14), 58)
+# City light strength (owner, 2026-11-22: toned down at night). 1.0 was the handoff's level.
+K = 0.7
+save('plate_blue_lit', scr(scr(scr(blue, st * K), wn * 0.9 * K), bl * 0.16 * K), 56)
+save('plate_night_eve', scr(scr(scr(night, st * K), wn * K), bl * 0.2 * K), 58)
+save('plate_night_late', scr(scr(scr(night, st * K), wn * 0.32 * K), bl * 0.14 * K), 58)

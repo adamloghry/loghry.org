@@ -159,17 +159,21 @@ I5 = [(-0.01, 0.725), (0.02, 0.70), (0.055, 0.65), (0.09, 0.60), (0.13, 0.55), (
       (0.25, 0.40), (0.30, 0.355), (0.35, 0.318), (0.385, 0.29), (0.40, 0.262), (0.408, 0.235), (0.415, 0.205), (0.42, 0.18)]
 AURORA = [(0.915, 0.372), (0.95, 0.38), (0.98, 0.39), (1.01, 0.398)]
 EASTLAKE = [(0.27, 0.505), (0.31, 0.44), (0.35, 0.38), (0.385, 0.33), (0.41, 0.30), (0.43, 0.27)]
-WESTLAKE = [(0.53, 0.285), (0.58, 0.30), (0.63, 0.33), (0.68, 0.36), (0.74, 0.38), (0.80, 0.393), (0.90, 0.40), (1.0, 0.405)]
-NORTHLAKE = [(0.45, 0.505), (0.50, 0.50), (0.56, 0.498), (0.64, 0.494), (0.72, 0.498), (0.80, 0.497), (0.90, 0.494), (1.0, 0.492)]
-MERCER = [(0.50, 0.258), (0.56, 0.252), (0.62, 0.247), (0.70, 0.238), (0.74, 0.232)]
-ROADS = {'i5': I5, 'aurora': AURORA, 'eastlake': EASTLAKE, 'westlake': WESTLAKE, 'northlake': NORTHLAKE, 'mercer': MERCER}
+# Westlake and Northlake are traced along the line of buildings, inland of the grey marina/haze band that the water
+# mask does not catch (owner, 2026-11-22: the old traces ran into the lake). Northlake starts at the foot of Gas Works,
+# not out in the bay to its west.
+WESTLAKE = [(0.522, 0.279), (0.574, 0.288), (0.600, 0.296), (0.628, 0.310), (0.659, 0.338), (0.700, 0.3585), (0.759, 0.377), (0.815, 0.386), (0.870, 0.390), (1.0, 0.394)]
+NORTHLAKE = [(0.512, 0.503), (0.53, 0.501), (0.56, 0.498), (0.64, 0.494), (0.72, 0.498), (0.80, 0.497), (0.90, 0.494), (1.0, 0.492)]
+# No Mercer: a straight trace through South Lake Union to the Needle read as a ruler line (owner, 2026-11-22). The far
+# city there is already lit from the photo's own built pixels (section 2).
+ROADS = {'i5': I5, 'aurora': AURORA, 'eastlake': EASTLAKE, 'westlake': WESTLAKE, 'northlake': NORTHLAKE}
 
 for (x, y) in polyline_samples(I5, lambda y: 0.006 * s_of(y) + 0.0016):
     s = s_of(y)
     for off in (-0.004, 0.004):
         xo, yo = offset_line([(x, y), (x + 0.01, y - 0.012)], off)[0]
         add(xo, yo, C['sodium'] if (int(y * 900) % 3 == 0) else C['artery'], 1.15, 1.1 * s + 0.35)
-for name in ('aurora', 'eastlake', 'westlake', 'northlake', 'mercer'):
+for name in ('aurora', 'eastlake', 'westlake', 'northlake'):
     for (x, y) in polyline_samples(ROADS[name], lambda y: 0.007 * s_of(y) + 0.0016):
         if at(water, x, y) > 0.6 and name not in ('aurora',): continue
         add(x, y, C['artery'], 1.35, 1.1 * s_of(y) + 0.3)
@@ -264,7 +268,7 @@ def finish(img):
     img = img * (1 - 0.35 * hz) + blur3(img, 1.6) * 0.35 * hz                                                  # far haze
     img = img + blur3(img, N * 0.03) * cl * 0.55 * np.array([1.0, 0.8, 0.62])                                  # cloud glow
     refl = np.stack([ndi.convolve1d(img[..., c], ker, axis=0, mode='constant') for c in range(3)], -1)
-    img = img * (1 - water[..., None]) + refl * water[..., None] * 0.9 * ripple[..., None]
+    img = img * (1 - water[..., None]) + refl * water[..., None] * 0.45 * ripple[..., None]   # was 0.9: long bright streaks read as roads into the lake
     return img * (1 - sky[..., None] * 0.9)
 def tone(img): return np.clip(1 - np.exp(-img * 1.05), 0, 1)
 def save(name, a, q=86):

@@ -231,15 +231,25 @@
                     ASTRO_TELEMETRY_DISABLED = "1";
                   };
 
-                  enterShell = ''
-                    echo "loghry.org dev environment"
-                    echo "  dev        - Astro dev server"
-                    echo "  build      - unit tests (x3 time zones), upkeep, then dist/"
-                    echo "  verify     - build, then static + Playwright acceptance checks"
-                    echo "  demo       - build, then serve dist/ with production headers on :4329 (tailnet IP if any)"
-                    echo "  properties - Bombadil property tests on dist/ (pass a time limit, e.g. 5m)"
-                    echo "  nix flake check --impure - build, astro check, static checks, treefmt"
-                  '';
+                  # Off NixOS (e.g. GitHub's Ubuntu runner) there is no /run/opengl-driver, so Nix-built WebKit finds no
+                  # EGL driver and aborts ("Could not create EGL display"). Point libglvnd at nixpkgs' Mesa instead.
+                  enterShell =
+                    lib.optionalString pkgs.stdenv.isLinux ''
+                      if [ ! -e /run/opengl-driver ]; then
+                        export __EGL_VENDOR_LIBRARY_FILENAMES=${pkgs.mesa}/share/glvnd/egl_vendor.d/50_mesa.json
+                        export LIBGL_DRIVERS_PATH=${pkgs.mesa}/lib/dri
+                        export GBM_BACKENDS_PATH=${pkgs.mesa}/lib/gbm
+                      fi
+                    ''
+                    + ''
+                      echo "loghry.org dev environment"
+                      echo "  dev        - Astro dev server"
+                      echo "  build      - unit tests (x3 time zones), upkeep, then dist/"
+                      echo "  verify     - build, then static + Playwright acceptance checks"
+                      echo "  demo       - build, then serve dist/ with production headers on :4329 (tailnet IP if any)"
+                      echo "  properties - Bombadil property tests on dist/ (pass a time limit, e.g. 5m)"
+                      echo "  nix flake check --impure - build, astro check, static checks, treefmt"
+                    '';
                 }
               )
             ];

@@ -62,7 +62,6 @@
 @keyframes lk-pride{0%{background:#e40303}17%{background:#ff8c00}33%{background:#ffed00}50%{background:#008026}67%{background:#004dff}83%{background:#750787}100%{background:#e40303}}
 .lk-kingtree{clip-path:polygon(50% 0,100% 100%,0 100%);background:radial-gradient(circle at 30% 70%,#ff3b2f 0 1px,transparent 1.5px) 0 0/5px 6px,radial-gradient(circle at 70% 30%,#5cff7a 0 1px,transparent 1.5px) 0 0/6px 5px,radial-gradient(circle at 50% 50%,#ffd84a 0 1px,transparent 1.5px) 0 0/7px 7px;animation:lk-twinkle 2.6s ease-in-out infinite alternate}
 @keyframes lk-twinkle{from{filter:brightness(.8)}to{filter:brightness(1.25)}}
-.lk-clearmask{-webkit-mask-image:url(../assets/sky/clear_a.webp);mask-image:url(../assets/sky/clear_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .lk-water{-webkit-mask-image:url(../assets/sky/water_a.webp);mask-image:url(../assets/sky/water_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .lk-lake{-webkit-mask-image:url(../assets/sky/lake_a.webp);mask-image:url(../assets/sky/lake_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .lk-foliage{-webkit-mask-image:url(../assets/sky/foliage_a.webp);mask-image:url(../assets/sky/foliage_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}

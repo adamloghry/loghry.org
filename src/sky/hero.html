@@ -73,20 +73,18 @@
 </span>
 </sc-if>
 <sc-if value="{{show.ferries}}">
-<div class="lk-clearmask" aria-hidden="true" style="position: absolute; inset: 0">
 <sc-for list="{{ferries}}" as="f"><span class="lk-car" aria-hidden="true" style="{{f.style}}"></span></sc-for>
-</div>
 </sc-if>
 <sc-for list="{{aircraft}}" as="a"><span class="lk-car" aria-hidden="true" style="{{a.style}}"><span class="lk-strobe"></span><span class="lk-navlight"></span></span></sc-for>
 <sc-if value="{{show.dayCars}}">
-<div class="lk-fade lk-clearmask" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{dayCarsOpacity}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{dayCarsOpacity}}">
 <sc-for list="{{dayCars}}" as="c">
 <span class="lk-car" style="{{c.style}}" data-off="{{c.off}}"></span>
 </sc-for>
 </div>
 </sc-if>
 <sc-if value="{{show.cars}}">
-<div class="lk-fade lk-clearmask" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{carsOpacity}}">
+<div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{carsOpacity}}">
 <sc-for list="{{cars}}" as="c">
 <span class="lk-car" style="{{c.style}}" data-off="{{c.off}}"></span>
 </sc-for>

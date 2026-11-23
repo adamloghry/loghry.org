@@ -13,8 +13,9 @@
 </div>
 
 <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px">
-<div aria-hidden="true" style="position: relative; height: 56px; border-radius: 6px; background: {{dayGradient}}">
+<div class="alm-chart" tabindex="0" role="group" aria-label="Today's light, hour by hour. Move across it, or use the arrow keys, to read the time, the sun's height and the light level." aria-describedby="alm-day-read" onPointerMove="{{onDayMove}}" onPointerDown="{{onDayMove}}" onPointerLeave="{{onLeave}}" onKeyDown="{{onDayKey}}" onBlur="{{onLeave}}" style="position: relative; height: 56px; border-radius: 6px; background: {{dayGradient}}">
 <div style="{{nowStyle}}"></div>
+<div style="{{dayCursorStyle}}"></div>
 </div>
 <div style="position: relative; height: 16px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: #a39d93">
 <span style="position: absolute; left: 0">00:00</span>
@@ -23,6 +24,7 @@
 <span style="position: absolute; left: 75%; transform: translateX(-50%)">18:00</span>
 <span style="position: absolute; right: 0">24:00</span>
 </div>
+<p class="alm-read" id="alm-day-read" aria-live="polite">{{dayRead}}</p>
 <p style="margin: 4px 0 0; font-size: clamp(17px, 1.5vw, 20px); line-height: 1.45; color: #cfc8bc; max-width: 900px">The sun climbs to <em>{{maxElev}}</em> today. Civil twilight runs {{civilDawn}}–{{civilDusk}}; the band above is the photo's light, hour by hour.</p>
 </div>
 </section>
@@ -32,7 +34,7 @@
 <h2 style="margin: 0; font-weight: 300; font-size: clamp(28px, 3vw, 40px); letter-spacing: -0.01em">The year in Seattle's daylight</h2>
 <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #a39d93">{{yearRange}}</span>
 </div>
-<div role="img" aria-label="Bar chart of day length through the year. {{yearRange}}" style="height: 170px; display: flex; align-items: flex-end; gap: clamp(1px, .2vw, 3px); border-bottom: 1px solid rgba(239,233,222,.22)">
+<div class="alm-chart" tabindex="0" role="group" aria-label="Day length through the year, one bar per five days. Move across it, or use the arrow keys, to read a date. {{yearRange}}" aria-describedby="alm-year-read" onPointerMove="{{onYearMove}}" onPointerDown="{{onYearMove}}" onPointerLeave="{{onLeave}}" onKeyDown="{{onYearKey}}" onBlur="{{onLeave}}" style="height: 170px; display: flex; align-items: flex-end; gap: clamp(1px, .2vw, 3px); border-bottom: 1px solid rgba(239,233,222,.22)">
 <sc-for list="{{bars}}" as="b">
 <div style="{{b.style}}"></div>
 </sc-for>
@@ -40,6 +42,7 @@
 <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: #a39d93">
 <span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span><span>Dec</span>
 </div>
+<p class="alm-read" id="alm-year-read" aria-live="polite">{{yearRead}}</p>
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 18px">
@@ -48,7 +51,7 @@
 <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #a39d93">Sea-Tac normals, {{normalsPeriod}}</span>
 </div>
 <p style="margin: 0; font-size: clamp(17px, 1.5vw, 20px); line-height: 1.45; color: #cfc8bc; max-width: 980px">{{typicalLine}}</p>
-<div role="img" aria-label="Bar chart by month: share of daylight hours with sun, and days with measurable rain" style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: clamp(3px, .7vw, 10px); align-items: end">
+<div class="alm-chart" tabindex="0" role="group" aria-label="By month: share of daylight hours with sun, and days with measurable rain. Move across it, or use the arrow keys, to read a month's normals." aria-describedby="alm-month-read" onPointerMove="{{onMonthMove}}" onPointerDown="{{onMonthMove}}" onPointerLeave="{{onLeave}}" onKeyDown="{{onMonthKey}}" onBlur="{{onLeave}}" style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: clamp(3px, .7vw, 10px); align-items: end">
 <sc-for list="{{months}}" as="m">
 <div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch">
 <div style="height: 110px; display: flex; align-items: flex-end; gap: 3px">
@@ -63,6 +66,7 @@
 <span style="display: flex; gap: 8px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 2px; background: #e8b48a"></span>Share of daylight hours with sun</span>
 <span style="display: flex; gap: 8px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 2px; background: #7f97b2"></span>Days with measurable rain</span>
 </div>
+<p class="alm-read" id="alm-month-read" aria-live="polite">{{monthRead}}</p>
 </section>
 
 <footer style="margin-top: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px 32px; padding-top: 28px; border-top: 1px solid rgba(239,233,222,.16); font-size: 17px; line-height: 1.45; color: #b8b1a6">

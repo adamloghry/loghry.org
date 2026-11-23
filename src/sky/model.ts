@@ -32,6 +32,28 @@ export function trafficLevel(hour: number, dow: number): { nb: number; sb: numbe
   return { nb: at(TRAFFIC.weekdayNB), sb: at(TRAFFIC.weekdaySB) };
 }
 
+// LIGHT — estimated outdoor illuminance (lux, on the ground, clear sky) from the sun's elevation. Above the horizon:
+// direct sun through the Kasten-Young air mass plus a skylight term; below it, log-linear through the standard
+// twilight values (≈400 lux at sunset, 3.4 at the end of civil twilight, 0.008 nautical, 0.0008 night). Moonlight is
+// ignored. An estimate for the almanac's readout, not a measurement.
+const TWILIGHT: [number, number][] = [[0, 400], [-6, 3.4], [-12, 0.008], [-18, 0.0008]];
+export function illuminance(el: number): number {
+  if (el > 0) {
+    const s = Math.sin(el * Math.PI / 180);
+    const m = 1 / (s + 0.50572 * Math.pow(el + 6.07995, -1.6364));
+    return 128000 * Math.exp(-0.21 * m) * s + 400 + 15000 * Math.sqrt(s);
+  }
+  for (let i = 0; i + 1 < TWILIGHT.length; i++) {
+    const [e0, l0] = TWILIGHT[i], [e1, l1] = TWILIGHT[i + 1];
+    if (el >= e1) { const t = (el - e0) / (e1 - e0); return Math.pow(10, Math.log10(l0) + t * (Math.log10(l1) - Math.log10(l0))); }
+  }
+  return TWILIGHT[TWILIGHT.length - 1][1];
+}
+/** What the sky is doing at a solar elevation (degrees). */
+export function lightPhase(el: number): string {
+  return el >= 6 ? 'daylight' : el >= -0.833 ? 'golden hour' : el >= -6 ? 'civil twilight' : el >= -12 ? 'nautical twilight' : el >= -18 ? 'astronomical twilight' : 'night';
+}
+
 export const sky: any = {
   _ev: null,
   cl(x) { return Math.max(0, Math.min(1, x)); },

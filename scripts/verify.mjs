@@ -209,6 +209,40 @@ if (want('traffic')) {
   await ctx.close();
   ok('traffic day', day > 15, `cars on screen on a June weekday at 7:45 AM: ${day}`);
 }
+// ---- the almanac charts answer back (owner, 2026-11-22) ----
+if (want('almanac')) {
+  const { ctx, page, problems } = await open({ viewport: VIEWPORTS.desktop, hash: 't=2026-06-21T13:00&sky=clear' });
+  const read = (id) => page.locator('#' + id).innerText();
+  const charts = page.locator('#almanac .alm-chart');
+  ok('almanac charts', (await charts.count()) === 3, `three inspectable charts (${await charts.count()})`);
+  const [day, year, month] = [charts.nth(0), charts.nth(1), charts.nth(2)];
+  await year.scrollIntoViewIfNeeded();
+  const yb = await year.boundingBox();
+  await page.mouse.move(yb.x + yb.width * (13.5 / 73), yb.y + yb.height / 2); await settle(page);
+  const yr = await read('alm-year-read');
+  ok('almanac year hover', /^Mar \d+–\d+ · \d+h \d\dm of daylight · sunrise .* (PST|PDT) · [+−]/.test(yr), 'hovering March: ' + yr);
+  await page.mouse.move(yb.x + yb.width / 2, yb.y - 60); await settle(page);
+  ok('almanac year leave', (await read('alm-year-read')).startsWith('Today, '), 'leaving the chart returns to today');
+  await day.focus(); await page.keyboard.press('Home'); await settle(page);
+  const d0 = await read('alm-day-read');
+  await page.keyboard.press('ArrowRight'); await settle(page);
+  const d1 = await read('alm-day-read');
+  ok('almanac day keys', d0.startsWith('12:00 AM') && d1.startsWith('12:15 AM') && /lux/.test(d1), `keyboard steps the day band: "${d0.slice(0, 30)}" -> "${d1.slice(0, 30)}"`);
+  const mb = await month.boundingBox();
+  await page.mouse.move(mb.x + mb.width * (2.5 / 12), mb.y + mb.height / 2); await settle(page);
+  ok('almanac month hover', /^March · highs near \d+°F, lows near \d+°F/.test(await read('alm-month-read')), 'hovering March shows its normals');
+  ok('almanac clean', problems.length === 0, 'no errors while inspecting ' + problems.join(' | '));
+  await ctx.close();
+  // touch: drag sideways along the year chart on a phone
+  const t = await browser.newContext({ viewport: VIEWPORTS.phone, hasTouch: true, isMobile: true });
+  const tp = await t.newPage(); await tp.goto(base + '/#t=2026-06-21T13:00&sky=clear'); await tp.waitForSelector('[data-test=clock]');
+  const ty = tp.locator('#almanac .alm-chart').nth(1); await ty.scrollIntoViewIfNeeded(); const tb = await ty.boundingBox();
+  await ty.dispatchEvent('pointerdown', { clientX: tb.x + tb.width * 0.9, clientY: tb.y + tb.height / 2, pointerType: 'touch', bubbles: true });
+  await settle(tp);
+  ok('almanac touch', /^(Nov|Dec) /.test(await tp.locator('#alm-year-read').innerText()), 'a touch near the end of the year chart reads Nov/Dec');
+  await t.close();
+}
+lap('almanac');
 lap('controls');
 // ---- accessibility (axe-core, WCAG 2 A/AA + best practice) ----
 if (want('axe')) {

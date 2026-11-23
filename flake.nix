@@ -101,8 +101,8 @@
           # Chromium (+ headless shell), Firefox and WebKit: verify.mjs runs every state in all three.
           # nixpkgs packages Playwright's WebKit and Firefox for Linux only; elsewhere use VERIFY_BROWSERS=chromium.
           playwrightBrowsers = pkgs.playwright-driver.browsers.override {
-            withFirefox = pkgs.stdenv.isLinux;
-            withWebkit = pkgs.stdenv.isLinux;
+            withFirefox = pkgs.stdenv.hostPlatform.isLinux;
+            withWebkit = pkgs.stdenv.hostPlatform.isLinux;
           };
 
           bakePython = pkgs.python3.withPackages (p: [
@@ -235,7 +235,7 @@
                   # Off NixOS (e.g. GitHub's Ubuntu runner) there is no /run/opengl-driver, so Nix-built WebKit finds no
                   # EGL driver and aborts ("Could not create EGL display"). Point libglvnd at nixpkgs' Mesa instead.
                   enterShell =
-                    lib.optionalString pkgs.stdenv.isLinux ''
+                    lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
                       if [ ! -e /run/opengl-driver ]; then
                         export __EGL_VENDOR_LIBRARY_FILENAMES=${pkgs.mesa}/share/glvnd/egl_vendor.d/50_mesa.json
                         export LIBGL_DRIVERS_PATH=${pkgs.mesa}/lib/dri

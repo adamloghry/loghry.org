@@ -303,6 +303,14 @@ do not push.
   flattened and shrunk by perspective, scattered over the water mask (the
   script asserts the size). `bake/static/ringsw*.webp` are gone.
 
+- 2026-11-22: almanac charts are inspectable (pointer, touch drag, keyboard;
+  readouts announced politely). Day band: time, sun height, phase, estimated
+  lux for a clear and a typical sky (`illuminance`, `lightPhase` in
+  `model.ts`; twilight anchors 400 / 3.4 / 0.008 / 0.0008 lux) and a
+  plain-words comparison. Year bars: date span, daylight, sunrise/sunset in
+  that date's zone, difference from today. Months: highs/lows, sun share, rain
+  and fog days. Rain falls at half the handoff's speed.
+
 ## Left to the builder
 
 - Exact Astro 7 / vitest 4 breakages and their minimal fixes (keep handoff

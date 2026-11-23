@@ -89,9 +89,6 @@ row_40th = int(np.argmin([abs(ew_y(k, 0.70) - 0.585) for k in range(len(ew))]))
 col_wall = int(np.argmin([abs(x - 0.64) for x in ns_bottom]))                    # the clear avenue reaching the shore at x~0.64
 col_b = int(np.argmin([abs(x - 0.86) for x in ns_bottom]))
 art_rows, art_cols = {row_45th, row_40th}, {col_wall, col_b}
-# Owner, 2026-11-22: N 45th St and Westlake read too bright; both at half strength. Passed to add() as dim=, which
-# raster() applies, so the glint selection and the rng sequence (and so every other light) stay exactly as they were.
-DIM_45TH, DIM_WESTLAKE = 0.5, 0.5
 
 def fg_ok(x, y):
     if not (0 <= x <= 1 and 0.47 <= y <= 1): return False
@@ -105,7 +102,7 @@ for k in range(len(ew)):
         if not fg_ok(x, y): continue
         s = s_of(y); art = (k in art_rows) or (j in art_cols)
         if art or rng.random() < 0.92:
-            add(x, y, C['artery'] if art else C['led'], (5.0 if art else 3.6) * (0.8 + 0.4 * rng.random()), 2.0 * s + 0.45, dim=DIM_45TH if k == row_45th else 1)
+            add(x, y, C['artery'] if art else C['led'], (5.0 if art else 3.6) * (0.8 + 0.4 * rng.random()), 2.0 * s + 0.45)
         # mid-block along the avenue toward the next row
         if k + 1 < len(ew):
             ym = 0.5 * (ew[k] + ew[k + 1]); xm = ns_x(j, ym); ym = ew_y(k, xm) * 0.5 + ew_y(k + 1, xm) * 0.5
@@ -116,10 +113,10 @@ for k in range(len(ew)):
             for f in (0.25, 0.5, 0.75):
                 xa = ns_x(j, y0) * (1 - f) + ns_x(j + 1, y0) * f; ya = ew_y(k, xa)
                 if fg_ok(xa, ya):
-                    add(xa, ya, C['artery'], 2.8, 1.6 * s + 0.4, dim=DIM_45TH if k == row_45th else 1)
+                    add(xa, ya, C['artery'], 2.8, 1.6 * s + 0.4)
                     if k == row_45th and 0.50 < xa < 0.92:
                         for _ in range(3):
-                            add(xa + (rng.random() - 0.5) * 0.02 * s, ya + (rng.random() - 0.3) * 0.012 * s, C['shop'], 0.9 * rng.random() + 0.3, 1.0 * s + 0.3, kind=1, dim=DIM_45TH)
+                            add(xa + (rng.random() - 0.5) * 0.02 * s, ya + (rng.random() - 0.3) * 0.012 * s, C['shop'], 0.9 * rng.random() + 0.3, 1.0 * s + 0.3, kind=1)
         # arterial columns: denser lights
         if j in art_cols and k + 1 < len(ew):
             for f in (0.25, 0.75):
@@ -134,6 +131,14 @@ for x, y in cand:
         s = s_of(y); add(x, y, C['window'], 0.6 + 0.9 * rng.random(), 1.0 * s + 0.3, kind=1)
 
 # ================= 2. Far city: sample real built pixels, zone-weighted =================
+# downtown tower silhouettes: darker than the haze behind them and bluish (glass). Deterministic (no rng).
+Lp = (photo ** 2.2 * [0.2126, 0.7152, 0.0722]).sum(-1)
+meanL = ndi.uniform_filter(Lp, int(N * 0.04)); blue = photo[..., 2] - photo[..., 0]
+tower = np.clip((meanL - Lp) / (0.45 * meanL), 0, 1) * np.clip((blue + 0.01) / 0.05, 0, 1)
+tower = ndi.binary_opening(tower > 0.35, iterations=1)
+tower = ndi.binary_closing(tower, structure=np.ones((5, 1)), iterations=2).astype(np.float32)
+tower *= np.clip(z_down * 1.3, 0, 1) * (1 - water) * (1 - sky)
+tower = ndi.gaussian_filter(tower, 0.6)
 cand = rng.random((260000, 2)); cand[:, 1] = 0.135 + cand[:, 1] * (0.50 - 0.135)
 shore = np.clip(ndi.gaussian_filter((ndi.binary_dilation(water > 0.5, iterations=int(N * 0.006)) & (water < 0.5)).astype(np.float32), 2) * 2, 0, 1)
 for x, y in cand:
@@ -146,10 +151,16 @@ for x, y in cand:
     if rng.random() > dens: continue
     s = s_of(y)
     if dz > 0.4:
-        u = rng.random(); col = C['office'] if u < 0.5 else (C['window'] if u < 0.78 else C['led'])
-        add(x, y, col, 0.5 + 1.1 * rng.random() * (0.4 + b), 0.6 * s + 0.3, elong=2.4, kind=1)
+        # Owner, 2026-11-22: downtown looked like glitter. Same rng draws as before (so the rest of the city is unchanged),
+        # but no point lights on the towers (their windows are drawn per building below), and street level between
+        # them is dimmer, warmer and round rather than vertical smears.
+        u = rng.random(); col = C['window'] if u < 0.5 else (C['led'] if u < 0.78 else C['sodium'])
+        inten = 0.5 + 1.1 * rng.random() * (0.4 + b)
+        on_tower = at(tower, x, y) > 0.25
+        if not on_tower: add(x, y, col, inten * 0.5, 0.5 * s + 0.28, kind=1)
         if rng.random() < 0.025:
-            add(x, y, C[('neon_r', 'neon_t', 'neon_v')[int(rng.random() * 3)]], 1.6, 0.6 * s + 0.35, kind=1)
+            neon = C[('neon_r', 'neon_t', 'neon_v')[int(rng.random() * 3)]]
+            if not on_tower: add(x, y, neon, 1.0, 0.6 * s + 0.35, kind=1)
     elif pz > 0.4:
         add(x, y, C['port'], 0.6 + 0.8 * rng.random(), 0.6 * s + 0.3)
     else:
@@ -166,11 +177,19 @@ AURORA = [(0.915, 0.372), (0.95, 0.38), (0.98, 0.39), (1.01, 0.398)]
 EASTLAKE = [(0.27, 0.505), (0.31, 0.44), (0.35, 0.38), (0.385, 0.33), (0.41, 0.30), (0.43, 0.27)]
 # Westlake and Northlake are traced along the line of buildings, inland of the grey marina/haze band that the water
 # mask does not catch (owner, 2026-11-22: the old traces ran into the lake). Northlake starts at the foot of Gas Works,
-# not out in the bay to its west.
+# not out in the bay to its west. East of the park (left in frame) it follows the bay's land side and the north bank of the
+# Ship Canal, under the photo's clouds, and passes under I-5 as NE Pacific St (owner, 2026-11-22: it used to end in the water).
 WESTLAKE = [(0.522, 0.279), (0.574, 0.288), (0.600, 0.296), (0.628, 0.310), (0.659, 0.338), (0.700, 0.3585), (0.759, 0.377), (0.815, 0.386), (0.870, 0.390), (1.0, 0.394)]
-NORTHLAKE = [(0.512, 0.503), (0.53, 0.501), (0.56, 0.498), (0.64, 0.494), (0.72, 0.498), (0.80, 0.497), (0.90, 0.494), (1.0, 0.492)]
+NORTHLAKE = [  # NE Pacific St (left edge, under I-5) <- NE/N Northlake Way around the bay east of Gas Works <- N 34th St (west, right)
+    (-0.01, 0.742), (0.040, 0.724), (0.085, 0.708), (0.130, 0.690), (0.175, 0.668), (0.220, 0.652), (0.265, 0.638), (0.310, 0.628),
+    (0.350, 0.620), (0.385, 0.613), (0.420, 0.610), (0.450, 0.608), (0.480, 0.603), (0.505, 0.592), (0.520, 0.568), (0.524, 0.545),
+    (0.518, 0.522),
+    (0.512, 0.503), (0.53, 0.501), (0.56, 0.498), (0.64, 0.494), (0.72, 0.498), (0.80, 0.497), (0.90, 0.494), (1.0, 0.492)]
 # No Mercer: a straight trace through South Lake Union to the Needle read as a ruler line (owner, 2026-11-22). The far
 # city there is already lit from the photo's own built pixels (section 2).
+# Owner, 2026-11-22: Westlake and N 34th St (NORTHLAKE) at half strength. Passed to add() as dim=, which raster()
+# applies, so the glint selection and the rng sequence (and so every other light) stay exactly as they were.
+ROAD_DIM = {'westlake': 0.5, 'northlake': 0.5}
 ROADS = {'i5': I5, 'aurora': AURORA, 'eastlake': EASTLAKE, 'westlake': WESTLAKE, 'northlake': NORTHLAKE}
 
 for (x, y) in polyline_samples(I5, lambda y: 0.006 * s_of(y) + 0.0016):
@@ -181,7 +200,7 @@ for (x, y) in polyline_samples(I5, lambda y: 0.006 * s_of(y) + 0.0016):
 for name in ('aurora', 'eastlake', 'westlake', 'northlake'):
     for (x, y) in polyline_samples(ROADS[name], lambda y: 0.007 * s_of(y) + 0.0016):
         if at(water, x, y) > 0.6 and name not in ('aurora',): continue
-        add(x, y, C['artery'], 1.35, 1.1 * s_of(y) + 0.3, dim=DIM_WESTLAKE if name == 'westlake' else 1)
+        add(x, y, C['artery'], 1.35, 1.1 * s_of(y) + 0.3, dim=ROAD_DIM.get(name, 1))
 
 # ================= 4. Landmarks =================
 NEEDLE = (0.749, 0.181)
@@ -231,22 +250,42 @@ glints = np.stack([fftconvolve(imp[..., c], star, mode='same') for c in range(3)
 streets += glints
 
 # downtown towers: silhouettes are darker than the haze behind them; fill with floor-striped windows
-Lp = (photo ** 2.2 * [0.2126, 0.7152, 0.0722]).sum(-1)
-meanL = ndi.uniform_filter(Lp, int(N * 0.04)); blue = photo[..., 2] - photo[..., 0]
-tower = np.clip((meanL - Lp) / (0.45 * meanL), 0, 1) * np.clip((blue + 0.01) / 0.05, 0, 1)
-tower = ndi.binary_opening(tower > 0.35, iterations=1)
-tower = ndi.binary_closing(tower, structure=np.ones((5, 1)), iterations=2).astype(np.float32)
-tower *= np.clip(z_down * 1.3, 0, 1) * (1 - water) * (1 - sky)
-tower = ndi.gaussian_filter(tower, 0.6)
-fy = (np.arange(N) % 3 == 0)[:, None]
-win = (rng.random((N, N)) < 0.42) & ~fy
-blocks = ndi.zoom(rng.random((N // 6 + 1, N // 6 + 1)), 6, order=0)[:N, :N]
-win = win & (blocks > 0.25)
-hue = ndi.zoom(rng.random((N // 9 + 1, N // 9 + 1)), 9, order=0)[:N, :N]
-tcol = np.where(hue[..., None] < 0.55, C['office'], np.where(hue[..., None] < 0.85, C['window'], C['led']))
-tower_em = win[..., None] * tcol * (tower ** 1.2)[..., None] * (0.55 + 0.5 * rng.random((N, N)))[..., None]
-tower_em = np.stack([ndi.gaussian_filter(tower_em[..., c], 0.5) for c in range(3)], -1)
-windows += tower_em * 1.6
+# The handoff drew these as per-pixel speckle; these draws are kept (unused) so the rng stream, and so the water ripple
+# texture below, stay exactly as they were.
+_ = rng.random((N, N)); _ = rng.random((N // 6 + 1, N // 6 + 1)); _ = rng.random((N // 9 + 1, N // 9 + 1)); _ = rng.random((N, N)); del _
+from scipy.special import ndtr
+rt = np.random.default_rng(34)                 # the towers' own stream
+# Buildings: connected tower pixels, split into building-width vertical slices (towers that touch in the photo would
+# otherwise share floors across the skyline). Each building gets its own occupancy, colour, brightness, floor height and
+# floor phase, so floors do not line up from one tower to the next.
+lab0, _n0 = ndi.label(tower > 0.3)
+cuts = np.cumsum(rt.integers(round(10 * N / 1800), round(26 * N / 1800) + 1, N))   # slice edges along x
+slice_of_x = np.searchsorted(cuts, np.arange(N), side='right')
+yy_, xx_ = np.mgrid[0:N, 0:N]
+key = np.where(lab0 > 0, lab0 * (slice_of_x.max() + 1) + slice_of_x[None, :], 0)
+_, lab = np.unique(key, return_inverse=True); lab = lab.reshape(N, N)            # 0 stays 0 (no tower)
+nb = int(lab.max())
+occ = rt.uniform(0.10, 0.65, nb + 1)            # share of floors lit
+fill = rt.uniform(0.45, 0.85, nb + 1)           # share of windows lit along a lit floor
+kind_b = rt.random(nb + 1)                      # light colour family
+gain = rt.uniform(0.5, 1.0, nb + 1)
+fh_b = rt.choice(np.array([2, 3, 3, 4]) * N // 1800 if N >= 1800 else np.array([2, 2, 3, 3]), nb + 1)
+ph_b = rt.integers(0, 4, nb + 1)
+fhp, php = fh_b[lab], ph_b[lab]
+fi = (yy_ + php) // fhp                         # floor index within each building
+nf = N // 2 + 2
+fz = ndi.gaussian_filter1d(rt.standard_normal((nf, nb + 1)), 1.3, axis=0); fz /= fz.std(axis=0, keepdims=True) + 1e-6
+floor_lit = ndtr(fz) < occ[None, :]             # whole floors on or off, in vertical runs
+wz = ndi.gaussian_filter1d(rt.standard_normal((nf, N)), 1.2, axis=1); wz /= wz.std() + 1e-6
+win_lit = ndtr(wz[fi, xx_]) < fill[lab]         # windows along a floor, in runs
+lit = (lab > 0) & floor_lit[fi, lab] & win_lit & ((yy_ + php) % fhp != 0) & (xx_ % 2 == 0)   # slab row; mullions
+fam = kind_b[lab]
+tcol = np.where((fam < 0.6)[..., None], C['office'], np.where((fam < 0.85)[..., None], C['window'], C['led']))
+tint = 0.8 + 0.4 * rt.random((nf, nb + 1))[fi, lab]
+tower_em = lit[..., None] * tcol * ((tower ** 1.2) * gain[lab] * tint)[..., None]
+tower_em = np.stack([ndi.gaussian_filter(tower_em[..., c], 0.45) for c in range(3)], -1)
+windows += tower_em * 1.1
+print('downtown towers', nb)
 # tower crowns stay lit all night (architectural lighting) -> street layer
 crown = tower * (ndi.binary_erosion(tower > 0.3, structure=np.ones((4, 1))) == 0) * (tower > 0.3)
 streets += np.stack([ndi.gaussian_filter(crown.astype(np.float32), 0.8)] * 3, -1) * C['office'] * 0.35

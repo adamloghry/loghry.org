@@ -252,10 +252,21 @@ do not push.
   Aurora 2 each way at 14 s (were 5 at 7 s), 3/2 px with a 3 px glow at
   0.4 alpha (were 4/3 px, 6 px at 0.65-0.75). Pinned by tests/unit/cars.test.ts;
   the bake changes were checked by eye against the photo and water mask.
-- 2026-11-22: I-5 cars 30% slower (91/97 s per pass); N 45th St and Westlake
-  lights at half strength (`DIM_45TH`, `DIM_WESTLAKE` in `lights.py`, applied at
-  raster time so no other light moves; verified with a before/after difference
-  image).
+- 2026-11-22: I-5 cars 30% slower (91/97 s per pass); Westlake and N 34th St
+  lights at half strength (`ROAD_DIM` in `lights.py`, applied at raster time so
+  no other light moves; verified with a before/after difference image). The owner
+  first said "45th" and meant 34th; 45th is unchanged.
+- 2026-11-22: N 34th St continues east of Gas Works around the bay (N/NE
+  Northlake Way) and along the Ship Canal's north bank under I-5 as NE Pacific
+  St, instead of ending in the water. East of the bay it runs under the photo's
+  clouds, so it reads as a soft glow there (traced from the photo; no map tiles
+  were available offline).
+- 2026-11-22: downtown lighting redrawn per building. Towers (the existing
+  silhouette mask, split into building-width slices) each get their own share
+  of lit floors, window fill, colour family, brightness, floor height and
+  phase; floors light in vertical runs and windows in horizontal runs with
+  mullions. No point-light glitter on towers; street level between them is
+  dimmer and warmer. Uses its own rng so the rest of the city is unchanged.
 
 ## Left to the builder
 

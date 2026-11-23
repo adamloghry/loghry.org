@@ -73,3 +73,5 @@ test('S-ORIGIN: a third-party URL in a JS bundle fails', async () =>
   assert.deepEqual(await failing({ '_astro/a.js': 'fetch("https://api.example.com/weather").then(r=>r.json())' }), ['S-ORIGIN']));
 test('S-ORIGIN: the photo-credit link and the site itself may appear in JS', async () =>
   assert.deepEqual(await failing({ '_astro/a.js': 'const u="https://unsplash.com/photos/x", s="https://loghry.org/", ns="http://www.w3.org/2000/svg"' }), []));
+test('S-LINKS: the OpenStreetMap copyright link is allowed', async () =>
+  assert.deepEqual(await failing({ 'index.html': GOOD_HTML.replace('<a href="/">home</a>', '<a href="https://www.openstreetmap.org/copyright">OSM</a>') }), []));

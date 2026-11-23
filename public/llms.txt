@@ -5,7 +5,7 @@
 - The page always follows Seattle time (America/Los_Angeles), never the visitor's clock.
 - Sun and moon positions are computed in the browser. The sky is typical weather for that hour, chosen from Sea-Tac 1991–2020 climate normals; everyone sees the same sky at the same hour. It is not a forecast.
 - The site is fully static: no server, no API, no analytics, no third-party requests.
-- Photo: Ryan Wilson on Unsplash.
+- Photo: Ryan Wilson on Unsplash. Map data © OpenStreetMap contributors.
 
 ## Pages
 

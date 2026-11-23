@@ -58,6 +58,9 @@ if n:
     keep = np.isin(lab, 1 + np.where(sizes > (N * N) * 0.0004)[0])
     water = keep.astype(np.float32)
 water = ndi.binary_fill_holes(water > 0.5).astype(np.float32)
+# Feather the edge (owner, 2026-11-23: shorelines read as hard, stair-stepped lines at night). Thresholds at 0.5 keep
+# the same shore; everything that blends by the mask (night water, reflections, light spill) now fades across ~4 px.
+water = np.clip(ndi.gaussian_filter(water, N * 0.0022), 0, 1).astype(np.float32)
 
 # --- baked clouds (bright, smooth, low sat) outside sky ---
 cloud = ((L > 0.66) & (std < 0.05) & (sat < 0.10)).astype(np.float32)

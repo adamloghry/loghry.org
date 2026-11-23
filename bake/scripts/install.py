@@ -4,8 +4,8 @@ HERE = os.path.dirname(os.path.abspath(__file__)); OUT = os.path.join(HERE, 'out
 DST = os.path.join(HERE, '..', '..', 'src', 'assets', 'sky')
 PLATES = ['plate_day', 'plate_golden_am', 'plate_golden_pm', 'plate_blue', 'plate_blue_lit', 'plate_night_eve', 'plate_night_late', 'holiday']  # WebP + AVIF
 LAYERS = ['bloom', 'linework', 'cloud1_t', 'cloud2_t', 'fog_a', 'rain_far', 'rain_mid', 'rain_near', 'rain_veil',
-          'water_a', 'lake_a', 'foliage_a', 'snow_a', 'stars_a', 'ripple_a', 'glitter_a', 'flakes_a']                                 # WebP only
-STATIC_LAYERS = ['ringsw1', 'ringsw2']                                                                                             # hand-made, not derived from the photo
+          'water_a', 'lake_a', 'foliage_a', 'snow_a', 'stars_a', 'ripple_a', 'glitter_a', 'flakes_a', 'ringsw1', 'ringsw2']                                 # WebP only
+STATIC_LAYERS = []                                                                                                                 # hand-made, not derived from the photo (rain rings now come from rings.py)
 os.makedirs(DST, exist_ok=True); total = 0; missing = []
 def put(src):
     global total

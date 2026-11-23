@@ -9,6 +9,6 @@ from PIL import features
 import sys
 if not features.check('avif'): sys.exit('this Pillow cannot write AVIF; use Pillow >= 11.3 built with libavif')
 PY
-for step in "masks.py $N" "lights.py $N" "plates.py $N" rain.py extras.py lit.py install.py; do
+for step in "masks.py $N" "lights.py $N" "plates.py $N" rain.py rings.py extras.py lit.py install.py; do
   echo "== $step"; python3 $step
 done

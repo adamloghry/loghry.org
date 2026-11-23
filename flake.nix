@@ -59,7 +59,7 @@
           commit = self.shortRev or self.dirtyShortRev or "dev";
           buildDate = self.lastModifiedDate or "19700101000000"; # YYYYMMDDHHMMSS (UTC); src/site.ts keeps the date part
 
-          # Only what the site build reads. bake/ (the 7.5 MB original photo and the image scripts), docs/ (the
+          # Only what the site build reads. bake/original.png (the 7.5 MB photo), docs/ (the
           # handoff's reference screenshots) and tmp/ are not inputs; the baked layers are committed in src/assets.
           src = lib.fileset.toSource {
             root = ./.;
@@ -73,6 +73,7 @@
               ./public
               ./tests
               ./scripts
+              ./bake/scripts # text only (tests compare its I-5 trace with the page's); not bake/original.png
             ];
           };
 

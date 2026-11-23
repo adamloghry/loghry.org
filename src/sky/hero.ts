@@ -28,26 +28,44 @@ export class Hero extends View {
     // I-5 and Aurora: one path per direction, offset to the driver's right (US traffic keeps right), narrowing with
     // distance like the baked streaks in bake/scripts/lights.py. Seen from the north: northbound (toward the camera,
     // headlights) runs on the left/east, southbound (toward downtown, taillights) on the right/west.
-    const I5 = [[-0.01, 0.725], [0.02, 0.70], [0.055, 0.65], [0.09, 0.60], [0.13, 0.55], [0.165, 0.50], [0.215, 0.45],
-      [0.25, 0.40], [0.30, 0.355], [0.35, 0.318], [0.385, 0.29], [0.40, 0.262], [0.408, 0.235], [0.415, 0.205], [0.42, 0.18]];
+    // I-5 centreline, measured on the photo; the same control points as I5_CP in bake/scripts/lights.py.
+    const I5_CP = [[0.004, 0.75], [0.0195, 0.725], [0.035, 0.7], [0.066, 0.65], [0.0995, 0.6], [0.118, 0.575], [0.129, 0.55], [0.166, 0.5], [0.195, 0.45], [0.232, 0.4], [0.296, 0.355], [0.355, 0.318], [0.3887, 0.29], [0.407, 0.262], [0.41, 0.235], [0.416, 0.205], [0.42, 0.18]];
+    // Catmull-Rom through the control points (as the bake's smooth()), so lanes bend instead of kinking.
+    const smooth = (P, n = 10) => { const Q = [P[0], ...P, P[P.length - 1]], out = []; for (let i = 1; i < Q.length - 2; i++) { const [p0, p1, p2, p3] = [Q[i - 1], Q[i], Q[i + 1], Q[i + 2]]; for (let k = 0; k < n; k++) { const t = k / n; out.push([0, 1].map((c) => 0.5 * ((2 * p1[c]) + (-p0[c] + p2[c]) * t + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * t * t + (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * t ** 3))); } } out.push(P[P.length - 1]); return out; };
+    const I5 = smooth(I5_CP);
     const AURORA = [[0.905, 0.3696], [0.95, 0.3806], [0.98, 0.3906], [1.02, 0.4006]];
     const lane = (pts, off) => pts.map((q, i) => {
       const a = pts[Math.max(i - 1, 0)], b = pts[Math.min(i + 1, pts.length - 1)];
       const dx = b[0] - a[0], dy = b[1] - a[1], n = Math.hypot(dx, dy) || 1, s = Math.min(1, Math.max(0.035, (q[1] - 0.12) / 0.88));
       return [q[0] - dy / n * off * s, q[1] + dx / n * off * s];        // the driver's right, in screen coordinates
     });
-    const nb = this.P(lane([...I5].reverse(), 0.0028)), sb = this.P(lane(I5, 0.0028));
+    const nb = this.P(lane([...I5].reverse(), 0.0055)), sb = this.P(lane(I5, 0.0055));   // the two carriageways
     const an = this.P(lane(AURORA, 0.0018)), as = this.P(lane([...AURORA].reverse(), 0.0018));
     let sd = 9; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
     // Owner, 2026-11-22: subtler traffic. Small, dim points (were 4/3 px with a 6 px glow at .65-.75), fewer and slower.
     const car = (path, kf, ease, dur, delay, head) => 'position:absolute;left:0;top:0;width:' + (head ? 3 : 2) + 'px;height:' + (head ? 3 : 2) + 'px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:' + (head ? '#e8ebf2' : '#e0402e') + ';box-shadow:0 0 3px 1px ' + (head ? 'rgba(240,244,255,.4)' : 'rgba(255,50,30,.38)') + ';offset-path:path(\'' + path + '\');offset-rotate:0deg;animation:' + kf + ' ' + dur + 's ' + ease + ' infinite;animation-delay:-' + delay.toFixed(2) + 's';
+    // By day the same cars are car-coloured bodies (owner, 2026-11-22: a realistic city by day too): same path and timing
+    // as their lights, so at dusk each car becomes its own headlights. Colours follow a typical US mix, muted for the
+    // haze; their own stream (sd2) so the boats below keep their randomness.
+    const BODY = [['#e9e9e6', 0.25], ['#1d1f22', 0.19], ['#6e7176', 0.18], ['#b9bcc0', 0.11], ['#3a5378', 0.10], ['#8e2a26', 0.09], ['#a59a85', 0.05], ['#44584a', 0.03]];
+    let sd2 = 4242; const rnd2 = () => { sd2 = (sd2 * 16807) % 2147483647; return sd2 / 2147483647; };
+    const body = () => { let u = rnd2(); for (const [c, w] of BODY) { if ((u -= w) < 0) return c; } return BODY[0][0]; };
+    const dayCar = (path, kf, ease, dur, delay) => 'position:absolute;left:0;top:0;width:3px;height:2px;margin:-1px 0 0 -1.5px;border-radius:1px;background:' + body() + ';box-shadow:0 1px 1px rgba(0,0,0,.35);offset-path:path(\'' + path + '\');offset-rotate:auto;animation:' + kf + ' ' + dur + 's ' + ease + ' infinite;animation-delay:-' + delay.toFixed(2) + 's';
     // Every car that can ever be on the road at the busiest hour; renderVals() hides all but the hour's share.
-    const cars = [];
-    const fleet = (road, dir, n, path, kf, ease, dur, head) => { for (let i = 0; i < n; i++) cars.push({ road, dir, i, n, style: car(path, kf, ease, dur, (i + rnd() * 0.7) * dur / n, head) }); };
-    fleet('i5', 'nb', 16, nb, 'lk-in', 'cubic-bezier(.55,0,.9,.6)', 91, true);     // 91/97 s a pass (owner: 30% slower than 64/68 s)
-    fleet('i5', 'sb', 16, sb, 'lk-out', 'cubic-bezier(.1,.4,.45,1)', 97, false);
-    fleet('aurora', 'nb', 3, an, 'lk-in', 'linear', 14, true);
-    fleet('aurora', 'sb', 3, as, 'lk-out', 'linear', 14, false);
+    const cars = [], dayOnly = [];
+    // extra: day-only cars, interleaved with the twins. By day muted bodies can be denser than lights at night (owner:
+    // realistic by day, subtle lights by night); they fade with the day layer at dusk.
+    const fleet = (road, dir, n, path, kf, ease, dur, head, extra = 0) => {
+      for (let i = 0; i < n; i++) {
+        const delay = (i + rnd() * 0.7) * dur / n;
+        cars.push({ road, dir, i, n, style: car(path, kf, ease, dur, delay, head), dayStyle: dayCar(path, kf, ease, dur, delay) });
+      }
+      for (let i = 0; i < extra; i++) dayOnly.push({ road, dir, i, n: extra, dayStyle: dayCar(path, kf, ease, dur, (i + 0.15 + rnd2() * 0.7) * dur / extra) });
+    };
+    fleet('i5', 'nb', 16, nb, 'lk-in', 'cubic-bezier(.55,0,.9,.6)', 91, true, 24);     // 91/97 s a pass (owner: 30% slower than 64/68 s)
+    fleet('i5', 'sb', 16, sb, 'lk-out', 'cubic-bezier(.1,.4,.45,1)', 97, false, 24);
+    fleet('aurora', 'nb', 3, an, 'lk-in', 'linear', 14, true, 3);
+    fleet('aurora', 'sb', 3, as, 'lk-out', 'linear', 14, false, 3);
 
     // boats on the lake and the Ship Canal: slow, with a wake by day and a single light by night
     const lanes = [
@@ -91,7 +109,7 @@ export class Hero extends View {
 
     const planeS = this.P([[0.560, 0.452], [0.545, 0.41], [0.530, 0.36], [0.522, 0.315], [0.520, 0.285], [0.528, 0.245], [0.545, 0.205]]);
     const planeN = this.P([[0.522, 0.300], [0.530, 0.36], [0.545, 0.41], [0.560, 0.452], [0.585, 0.50], [0.63, 0.57], [0.70, 0.66]]);
-    this._mv = { cars, boats, sails, july4, newyear, planeS, planeN };
+    this._mv = { cars, dayOnly, boats, sails, july4, newyear, planeS, planeN };
     return this._mv;
   }
 
@@ -278,6 +296,8 @@ export class Hero extends View {
     const PL = { p0: pl('p0', showP.p0, w[0]), p1: pl('p1', vis[1], w[1]), p2: pl('p2', vis[2], w[2]), p3: pl('p3', showP.p3, w[3]), p3L: pl('p3L', showP.p3L, w[3] * on), p4L: pl('p4L', showP.p4L, w[4]), p4E: pl('p4E', showP.p4E, w[4] * kE) };
     if (again && !this._again) this._again = setTimeout(() => { this._again = null; this.setState({ now: this.state.now }); }, again);
 
+    const offAt = (c) => { const k = Math.round(c.n * traffic[c.dir]); return Math.floor((c.i + 1) * k / c.n) === Math.floor(c.i * k / c.n); };
+    const carOff = mv.cars.map(offAt);
     return {
       a: assets, rootClass: 'lk-root ' + (still ? 'lk-still' : (st.hidden ? 'lk-anim lk-paused' : 'lk-anim')), stageStyle,
       show: {
@@ -287,7 +307,7 @@ export class Hero extends View {
         rainbow: rainbowOpacity > 0.02, ripples: fog < 0.6 && rain < 0.08, glitter: glit > 0.03, rings: rain > 0.08,
         lights: on > 0.01, bloom: on > 0.05 && (rain > 0.2 || fog > 0.2 || snowCover > 0), holiday: holiday && on > 0.05, drawn: drawn && on > 0.05,
         boats: fog < 0.7, sails: event === 'duckdodge', plane: planeOn,
-        cars: !still && on > 0.05, beacons: on > 0.1,
+        cars: !still && on > 0.05, dayCars: !still && on < 0.95, beacons: on > 0.1,
         fireworks: fwOn, fwLake: event === 'july4',
         stars: nightish > 0.3 && cloud < 0.7 && fog < 0.3,
         litRain: rain > 0.05 && on > 0.05, fog: fog > 0.01,
@@ -308,7 +328,7 @@ export class Hero extends View {
       streetsOpacity: (on * lightK).toFixed(3),
       windowsOpacity: (on * win * lightK).toFixed(3),
       shimmerOpacity: (on * 0.45).toFixed(3),
-      holidayOpacity: (on * (0.4 + 0.4 * win)).toFixed(3),
+      holidayOpacity: (on * (0.4 + 0.4 * win) * 0.3).toFixed(3),   // owner, 2026-11-22: a faint December easter egg (was 1x)
       bloomOpacity: (on * (0.32 * rain + 0.45 * fog + 0.2 * snowCover) * (0.6 + 0.4 * win)).toFixed(3),
       skyGlowOpacity: (on * (0.15 + 0.6 * cloud + 0.3 * fog)).toFixed(3),
       drawnOpacity: sky.ss(0.05, 0.7, on).toFixed(3),
@@ -318,7 +338,9 @@ export class Hero extends View {
       planeStyle, planeWake,
       // The hour's share of the fleet, spread evenly along each road (Bresenham), so changing the count never bunches
       // the cars that stay; the hidden ones keep animating (visibility only), so nothing restarts.
-      cars: mv.cars.map((c) => { const k = Math.round(c.n * traffic[c.dir]); return { style: c.style, road: c.road, dir: c.dir, off: Math.floor((c.i + 1) * k / c.n) === Math.floor(c.i * k / c.n) }; }),
+      cars: mv.cars.map((c, j) => ({ style: c.style, road: c.road, dir: c.dir, off: carOff[j] })),
+      dayCars: [...mv.cars.map((c, j) => ({ style: c.dayStyle, road: c.road, dir: c.dir, off: carOff[j] })), ...mv.dayOnly.map((c) => ({ style: c.dayStyle, road: c.road, dir: c.dir, off: offAt(c) }))],
+      dayCarsOpacity: (1 - sky.ss(0.05, 0.6, on)).toFixed(3),
       carsOpacity: sky.ss(0.05, 0.6, on).toFixed(3),
       beaconOpacity: (0.9 * sky.ss(0.1, 0.7, on)).toFixed(3),
       ferryStyle: 'position:absolute;left:0;top:0;width:4px;height:3px;margin:-1px 0 0 -2px;border-radius:2px;background:#fffaf0;box-shadow:0 0 5px 2px rgba(255,248,230,' + (0.25 + 0.6 * on).toFixed(2) + ');offset-path:path(\'M813.6 250.6 L921.6 233.3 L1036.8 213.1 L1180.8 190.1 L1324.8 169.9 L1483.2 152.6\');offset-rotate:0deg;animation:lk-ferry 1500s linear infinite;animation-delay:-' + ((st.now / 1000) % 1500).toFixed(0) + 's',

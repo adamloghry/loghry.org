@@ -283,6 +283,18 @@ do not push.
   check (`traffic hour`) counts visible cars at 3 AM and 7:30 AM. Not changed:
   the faint traffic streaks baked into the night plates are constant.
 
+- 2026-11-22: daytime traffic. Every car has a day body (3x2 px, rotated with
+  the road, muted colours in a typical US mix) on the same path and timing as
+  its lights, so at dusk it becomes its own headlights; day and night layers
+  crossfade with the city lights. By day I-5 carries up to 40 cars each way
+  (24 day-only cars interleaved with the 16 twins), Aurora 6; night stays at 16
+  (lights kept subtle). The audit also found the I-5 trace rode the Ship Canal
+  Bridge's east edge and drifted onto houses near y 0.40: re-measured as the
+  roadway's centre (`I5_CP`, smoothed, shared by bake and page and checked by a
+  test), lanes at the two carriageways, and the bake's freeway lights and
+  traffic streaks moved with it. Checked by drawing every car as a large dot
+  over the day scene.
+
 ## Left to the builder
 
 - Exact Astro 7 / vitest 4 breakages and their minimal fixes (keep handoff

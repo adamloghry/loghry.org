@@ -203,6 +203,11 @@ if (want('traffic')) {
     await ctx.close();
   }
   ok('traffic hour', seen['3am'] > 0 && seen.rush > seen['3am'] * 2.5, `cars on screen: 3 AM ${seen['3am']}, 7:30 AM ${seen.rush}`);
+  // by day: car-coloured bodies on the same lanes (owner: a realistic city by day too)
+  const { ctx, page } = await open({ viewport: VIEWPORTS.desktop, hash: 't=2026-06-23T07:45&sky=clear' });
+  const day = await page.evaluate(() => [...document.querySelectorAll('.lk-car')].filter((c) => getComputedStyle(c).visibility === 'visible' && +getComputedStyle(c.parentElement).opacity > 0.5 && c.getBoundingClientRect().width > 0).length);
+  await ctx.close();
+  ok('traffic day', day > 15, `cars on screen on a June weekday at 7:45 AM: ${day}`);
 }
 lap('controls');
 // ---- accessibility (axe-core, WCAG 2 A/AA + best practice) ----

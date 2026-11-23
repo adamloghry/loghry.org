@@ -79,3 +79,14 @@ describe('the hero shows traffic for the hour', () => {
     expect(rush).toBeGreaterThan(night * 2.5);
   });
 });
+
+describe('I-5 has one source of truth', () => {
+  it('the page and the bake trace the same I-5 control points', async () => {
+    const { readFileSync } = await import('node:fs');
+    const nums = (s: string) => [...s.matchAll(/-?\d*\.\d+/g)].map((m) => +m[0]);
+    const bake = /^I5_CP = \[([\s\S]*?)\]$/m.exec(readFileSync('bake/scripts/lights.py', 'utf8'))![1];
+    const page = /const I5_CP = \[([\s\S]*?)\];/.exec(readFileSync('src/sky/hero.ts', 'utf8'))![1];
+    expect(nums(page)).toEqual(nums(bake));
+    expect(nums(bake).length).toBeGreaterThanOrEqual(30);
+  });
+});

@@ -15,6 +15,23 @@ export const NORMALS_PERIOD = '1991–2020';
 // The year in which calendar() below was last checked against real schedules.
 export const CALENDAR_REVIEWED = 2026;
 
+// TRAFFIC — share of peak I-5 traffic by Seattle hour (0..23, interpolated), for a typical urban freeway north of a
+// downtown: weekday commuters drive south (into downtown) in the morning and north in the evening; weekends are flatter
+// with a late-morning-to-afternoon hump; the small hours are nearly empty. Shapes, not counts: the page draws at most a
+// handful of cars, scaled by these.
+const TRAFFIC = {
+  weekdaySB: [0.24, 0.16, 0.12, 0.11, 0.16, 0.42, 0.80, 1.00, 0.95, 0.78, 0.68, 0.70, 0.72, 0.72, 0.74, 0.78, 0.80, 0.78, 0.66, 0.56, 0.50, 0.44, 0.38, 0.30],
+  weekdayNB: [0.24, 0.16, 0.12, 0.11, 0.14, 0.32, 0.58, 0.72, 0.74, 0.68, 0.66, 0.70, 0.72, 0.74, 0.80, 0.92, 1.00, 1.00, 0.82, 0.64, 0.54, 0.46, 0.38, 0.30],
+  weekend:   [0.32, 0.24, 0.17, 0.13, 0.12, 0.16, 0.24, 0.34, 0.46, 0.58, 0.68, 0.74, 0.78, 0.80, 0.80, 0.78, 0.74, 0.68, 0.60, 0.54, 0.50, 0.46, 0.42, 0.36],
+};
+/** Share of peak traffic (0..1) each way on I-5 at Seattle hour `hour` (fractional) on day of week `dow` (0 = Sunday). */
+export function trafficLevel(hour: number, dow: number): { nb: number; sb: number } {
+  const h = ((hour % 24) + 24) % 24, i = Math.floor(h), f = h - i, j = (i + 1) % 24;
+  const at = (t: number[]) => t[i] + (t[j] - t[i]) * f;
+  if (dow === 0 || dow === 6) { const w = at(TRAFFIC.weekend); return { nb: w, sb: w }; }
+  return { nb: at(TRAFFIC.weekdayNB), sb: at(TRAFFIC.weekdaySB) };
+}
+
 export const sky: any = {
   _ev: null,
   cl(x) { return Math.max(0, Math.min(1, x)); },

@@ -74,7 +74,7 @@
 <sc-if value="{{show.cars}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{carsOpacity}}">
 <sc-for list="{{cars}}" as="c">
-<span class="lk-car" style="{{c.style}}"></span>
+<span class="lk-car" style="{{c.style}}" data-off="{{c.off}}"></span>
 </sc-for>
 </div>
 <span class="lk-car" aria-hidden="true" style="{{ferryStyle}}"></span>

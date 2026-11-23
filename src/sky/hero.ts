@@ -1,7 +1,7 @@
 // @ts-nocheck — ported from the design canvas; the model it calls is unit-tested
 // The hero: turns the model's numbers into layer opacities, colours and moving things, and draws them through the template.
 import template from './hero.html?raw';
-import { sky } from './model';
+import { sky, trafficLevel } from './model';
 import { View } from './view';
 import { assets } from './assets';
 
@@ -25,16 +25,29 @@ export class Hero extends View {
   buildMovers(still) {
     if (this._mv) return this._mv;
     const ps = still ? ';animation-play-state:paused' : '';
-    const nb = "M604.5 259.1 L597.2 295.1 L587.0 338.3 L575.4 377.0 L553.8 417.1 L503.4 457.2 L431.3 510.4 L359.0 575.1 L308.4 647.0 L236.3 718.9 L185.6 790.8 L127.8 862.7 L77.2 934.6 L26.8 1006.3 L-16.2 1041.9";
-    const sb = "M-12.6 1046.1 L30.8 1009.7 L81.2 937.4 L131.4 865.3 L188.8 793.2 L238.9 721.1 L310.8 649.0 L361.0 576.9 L432.7 512.0 L504.6 458.6 L555.0 418.1 L576.6 377.5 L588.0 338.5 L598.0 295.3 L605.1 259.3";
-    const an = "M1303.0 532.2 L1367.8 548.0 L1411.0 562.4 L1468.6 576.9", as = "M1469.0 575.1 L1411.4 560.8 L1368.2 546.4 L1303.4 530.6";
+    // I-5 and Aurora: one path per direction, offset to the driver's right (US traffic keeps right), narrowing with
+    // distance like the baked streaks in bake/scripts/lights.py. Seen from the north: northbound (toward the camera,
+    // headlights) runs on the left/east, southbound (toward downtown, taillights) on the right/west.
+    const I5 = [[-0.01, 0.725], [0.02, 0.70], [0.055, 0.65], [0.09, 0.60], [0.13, 0.55], [0.165, 0.50], [0.215, 0.45],
+      [0.25, 0.40], [0.30, 0.355], [0.35, 0.318], [0.385, 0.29], [0.40, 0.262], [0.408, 0.235], [0.415, 0.205], [0.42, 0.18]];
+    const AURORA = [[0.905, 0.3696], [0.95, 0.3806], [0.98, 0.3906], [1.02, 0.4006]];
+    const lane = (pts, off) => pts.map((q, i) => {
+      const a = pts[Math.max(i - 1, 0)], b = pts[Math.min(i + 1, pts.length - 1)];
+      const dx = b[0] - a[0], dy = b[1] - a[1], n = Math.hypot(dx, dy) || 1, s = Math.min(1, Math.max(0.035, (q[1] - 0.12) / 0.88));
+      return [q[0] - dy / n * off * s, q[1] + dx / n * off * s];        // the driver's right, in screen coordinates
+    });
+    const nb = this.P(lane([...I5].reverse(), 0.0028)), sb = this.P(lane(I5, 0.0028));
+    const an = this.P(lane(AURORA, 0.0018)), as = this.P(lane([...AURORA].reverse(), 0.0018));
     let sd = 9; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
     // Owner, 2026-11-22: subtler traffic. Small, dim points (were 4/3 px with a 6 px glow at .65-.75), fewer and slower.
-    const car = (path, kf, ease, dur, delay, head) => ({ style: 'position:absolute;left:0;top:0;width:' + (head ? 3 : 2) + 'px;height:' + (head ? 3 : 2) + 'px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:' + (head ? '#e8ebf2' : '#e0402e') + ';box-shadow:0 0 3px 1px ' + (head ? 'rgba(240,244,255,.4)' : 'rgba(255,50,30,.38)') + ';offset-path:path(\'' + path + '\');offset-rotate:0deg;animation:' + kf + ' ' + dur + 's ' + ease + ' infinite;animation-delay:-' + delay.toFixed(2) + 's' });
+    const car = (path, kf, ease, dur, delay, head) => 'position:absolute;left:0;top:0;width:' + (head ? 3 : 2) + 'px;height:' + (head ? 3 : 2) + 'px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:' + (head ? '#e8ebf2' : '#e0402e') + ';box-shadow:0 0 3px 1px ' + (head ? 'rgba(240,244,255,.4)' : 'rgba(255,50,30,.38)') + ';offset-path:path(\'' + path + '\');offset-rotate:0deg;animation:' + kf + ' ' + dur + 's ' + ease + ' infinite;animation-delay:-' + delay.toFixed(2) + 's';
+    // Every car that can ever be on the road at the busiest hour; renderVals() hides all but the hour's share.
     const cars = [];
-    for (let i = 0; i < 14; i++) cars.push(car(nb, 'lk-in', 'cubic-bezier(.55,0,.9,.6)', 91, (i + rnd() * 0.7) * 91 / 14, true));    // was 26 cars, 36 s; then 64 s; owner: 30% slower
-    for (let i = 0; i < 13; i++) cars.push(car(sb, 'lk-out', 'cubic-bezier(.1,.4,.45,1)', 97, (i + rnd() * 0.7) * 97 / 13, false));  // was 24 cars, 38 s; then 68 s; owner: 30% slower
-    for (let i = 0; i < 2; i++) { cars.push(car(an, 'lk-in', 'linear', 14, i * 7 + rnd() * 2, true)); cars.push(car(as, 'lk-out', 'linear', 14, i * 7 + rnd() * 2, false)); } // Aurora: was 5 each way, 7 s
+    const fleet = (road, dir, n, path, kf, ease, dur, head) => { for (let i = 0; i < n; i++) cars.push({ road, dir, i, n, style: car(path, kf, ease, dur, (i + rnd() * 0.7) * dur / n, head) }); };
+    fleet('i5', 'nb', 16, nb, 'lk-in', 'cubic-bezier(.55,0,.9,.6)', 91, true);     // 91/97 s a pass (owner: 30% slower than 64/68 s)
+    fleet('i5', 'sb', 16, sb, 'lk-out', 'cubic-bezier(.1,.4,.45,1)', 97, false);
+    fleet('aurora', 'nb', 3, an, 'lk-in', 'linear', 14, true);
+    fleet('aurora', 'sb', 3, as, 'lk-out', 'linear', 14, false);
 
     // boats on the lake and the Ship Canal: slow, with a wake by day and a single light by night
     const lanes = [
@@ -106,6 +119,7 @@ export class Hero extends View {
     const doy = Math.round((Date.UTC(p.y, p.mo - 1, p.d) - Date.UTC(p.y, 0, 0)) / 86400000);
     const dow = new Date(Date.UTC(p.y, p.mo - 1, p.d)).getUTCDay();
     const ev = sky.dayEvents(p.y, p.mo, p.d);
+    const traffic = trafficLevel(p.h + p.mi / 60, dow);
     const s = sky.sun(ms), el = s.el, pm = s.az > 180, hr = p.h + p.mi / 60, nowMin = p.h * 60 + p.mi;
     let mn = sky.moon(ms, s.lam);
     if (moonMode === 'full') mn = { el: 42, az: 186, illum: 1, waxing: true };
@@ -302,7 +316,10 @@ export class Hero extends View {
       boats: mv.boats.slice(0, nBoats), boatsOpacity: (el > 0 ? 0.9 * (1 - fog) : 0.55).toFixed(2),
       sails: mv.sails, sailsOpacity: (0.95 * (0.45 + 0.55 * (dayish + eff[3]))).toFixed(2),
       planeStyle, planeWake,
-      cars: mv.cars, carsOpacity: sky.ss(0.05, 0.6, on).toFixed(3),
+      // The hour's share of the fleet, spread evenly along each road (Bresenham), so changing the count never bunches
+      // the cars that stay; the hidden ones keep animating (visibility only), so nothing restarts.
+      cars: mv.cars.map((c) => { const k = Math.round(c.n * traffic[c.dir]); return { style: c.style, road: c.road, dir: c.dir, off: Math.floor((c.i + 1) * k / c.n) === Math.floor(c.i * k / c.n) }; }),
+      carsOpacity: sky.ss(0.05, 0.6, on).toFixed(3),
       beaconOpacity: (0.9 * sky.ss(0.1, 0.7, on)).toFixed(3),
       ferryStyle: 'position:absolute;left:0;top:0;width:4px;height:3px;margin:-1px 0 0 -2px;border-radius:2px;background:#fffaf0;box-shadow:0 0 5px 2px rgba(255,248,230,' + (0.25 + 0.6 * on).toFixed(2) + ');offset-path:path(\'M813.6 250.6 L921.6 233.3 L1036.8 213.1 L1180.8 190.1 L1324.8 169.9 L1483.2 152.6\');offset-rotate:0deg;animation:lk-ferry 1500s linear infinite;animation-delay:-' + ((st.now / 1000) % 1500).toFixed(0) + 's',
       bursts: event === 'newyear' ? mv.newyear : mv.july4, fireworksOpacity: (1 - 0.75 * fog).toFixed(2),

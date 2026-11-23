@@ -38,6 +38,7 @@
 .lk-anim .lk-ring-b{animation:lk-pulse 1.4s steps(4) infinite;animation-delay:-.7s}
 .lk-anim .lk-flash{animation:lk-flash 1.3s ease-in-out infinite}
 .lk-still .lk-car{display:none}
+.lk-car[data-off]{visibility:hidden}  /* outside this hour's traffic; keeps animating so the rest never restart */
 .lk-paused *{animation-play-state:paused !important}
 
 .lk-plate,.lk-fade{transition:opacity 2.4s ease, background-color 2.4s ease}

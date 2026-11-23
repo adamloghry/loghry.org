@@ -193,6 +193,17 @@ if (want('controls')) {
   await ctx.close();
 }
 
+// ---- traffic follows the hour (owner, 2026-11-22) ----
+if (want('traffic')) {
+  const seen = {};
+  for (const [label, t] of [['3am', '2026-12-15T03:00'], ['rush', '2026-12-15T07:30']]) {
+    const { ctx, page } = await open({ viewport: VIEWPORTS.desktop, hash: `t=${t}&sky=clear` });
+    seen[label] = await page.evaluate(() => [...document.querySelectorAll('.lk-car')].filter((c) => getComputedStyle(c).visibility === 'visible' && c.getBoundingClientRect().width > 0).length);
+    await page.screenshot({ path: shots + `traffic-${label}.png`, clip: { x: 0, y: 150, width: 720, height: 750 } });
+    await ctx.close();
+  }
+  ok('traffic hour', seen['3am'] > 0 && seen.rush > seen['3am'] * 2.5, `cars on screen: 3 AM ${seen['3am']}, 7:30 AM ${seen.rush}`);
+}
 lap('controls');
 // ---- accessibility (axe-core, WCAG 2 A/AA + best practice) ----
 if (want('axe')) {

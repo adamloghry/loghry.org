@@ -15,7 +15,7 @@ the baked layers or their tuning without the owner.
 - `src/pages/index.astro`, `src/pages/404.astro`, `src/layouts/Base.astro` - markup and head. The only script is
   the processed `<script>import '../sky/main.ts'</script>`; do not add attributes to it (Astro then treats it as
   inline, which the CSP blocks).
-- `src/sky/` - the page logic, as delivered: `model.ts` (Seattle clock, sun, moon, weather normals, calendar; pure),
+- `src/sky/` - the page logic, as delivered: `model.ts` (Seattle clock, sun, moon, weather normals, calendar, hourly traffic; pure),
   `hero.ts|html` and `almanac.ts|html` (state -> template values; `// @ts-nocheck`), `view.ts` (the small template
   runtime), `assets.ts`, `main.ts` (entry), `hooks.ts` (preview-hook parser).
 - `src/site.ts` - title, description, photo credit, `buildStamp()`.

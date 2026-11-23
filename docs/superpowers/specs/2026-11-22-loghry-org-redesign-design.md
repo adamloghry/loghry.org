@@ -272,6 +272,17 @@ do not push.
   mullions. No point-light glitter on towers; street level between them is
   dimmer and warmer. Uses its own rng so the rest of the city is unchanged.
 
+- 2026-11-22: traffic audit. I-5 gets one lane path per direction, offset to
+  the driver's right and narrowing with distance like the baked streaks:
+  northbound (headlights) on the left/east, southbound (taillights) on the
+  right/west; Aurora the same. Traffic follows the Seattle hour and weekday
+  (`trafficLevel` in `model.ts`: weekday AM peak southbound, PM peak northbound,
+  flatter weekends, near-empty small hours); the page shows that share of a
+  16-car-per-direction fleet, spread evenly, hiding the rest with visibility so
+  no animation restarts. Unit tests in `tests/unit/traffic.test.ts`; a browser
+  check (`traffic hour`) counts visible cars at 3 AM and 7:30 AM. Not changed:
+  the faint traffic streaks baked into the night plates are constant.
+
 ## Left to the builder
 
 - Exact Astro 7 / vitest 4 breakages and their minimal fixes (keep handoff

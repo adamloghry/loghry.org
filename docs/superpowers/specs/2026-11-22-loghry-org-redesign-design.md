@@ -333,6 +333,15 @@ do not push.
     x 0.749) and Columbia Center (~178 deg at x ~0.43), the frame spans
     ~158-204 deg; Rainier is at ~152 deg from Lake Union, outside the frame.
 
+- 2026-11-22: quality. Profiling (software rendering, the floor): clear
+  scenes 60 fps; rainy night 16 fps, cost spread across many full-frame
+  layers (no single culprit; dropping near rain gained ~2 fps). Found and
+  fixed: moon glitter drawn under full rain cloud (a glint now needs a clear
+  line to the moon) - rainy night 16 -> 22 fps. No adaptive 'lite' mode:
+  gains too small for the complexity; GPUs composite these cheaply.
+  Performance budget in verify.mjs ('perf') and visual regression snapshots
+  (scripts/visual.mjs, 0.05% budget, deterministic locally).
+
 ## Left to the builder
 
 - Exact Astro 7 / vitest 4 breakages and their minimal fixes (keep handoff

@@ -15,6 +15,7 @@
     "check": "astro check",
     "test": "TZ=America/Los_Angeles vitest run && TZ=Asia/Tokyo vitest run && TZ=UTC vitest run",
     "test:ui": "node tests/ui/run.mjs",
+    "test:visual": "node scripts/visual.mjs",
     "verify": "node --test scripts/*.test.mjs && node scripts/verify-static.mjs && node scripts/verify.mjs",
     "check:upkeep": "node tests/upkeep.mjs"
   },
@@ -30,7 +31,9 @@
     "@axe-core/playwright": "^4.14.0",
     "@types/node": "^26.6.6",
     "jsdom": "^27.0.0",
+    "pixelmatch": "^7.2.0",
     "playwright": "1.64.1",
+    "pngjs": "^7.0.0",
     "typescript": "^6.0.3",
     "vitest": "^4.0.0"
   }

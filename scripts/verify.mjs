@@ -303,6 +303,43 @@ if (want('clouds')) {
   ok('clouds still when reduced', still.every((x) => !Number.isFinite(x) || x === still[0]), 'no drift under reduced motion');
 }
 lap('clouds');
+// ---- performance budget (owner, 2026-11-22: smooth and slick; regressions fail here) ----
+if (want('perf')) {
+  const ctx = await browser.newContext({ viewport: VIEWPORTS.desktop });
+  const page = await ctx.newPage(), cdp = await ctx.newCDPSession(page);
+  await cdp.send('Performance.enable');
+  let bytes = 0, requests = 0;
+  page.on('requestfinished', async (r) => { requests++; try { const z = await r.sizes(); bytes += z.responseBodySize + z.responseHeadersSize; } catch { /* gone */ } });
+  await page.addInitScript(() => {
+    window.__perf = { cls: 0, lcp: 0, long: [] };
+    new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__perf.cls += e.value; }).observe({ type: 'layout-shift', buffered: true });
+    new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__perf.lcp = e.startTime; }).observe({ type: 'largest-contentful-paint', buffered: true });
+    new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__perf.long.push(Math.round(e.duration)); }).observe({ type: 'longtask', buffered: true });
+  });
+  await page.goto(base + '/#t=2026-06-21T13:00&sky=clear', { waitUntil: 'load' });
+  await page.waitForSelector('[data-test=clock]'); await page.waitForTimeout(2500);
+  const load = await page.evaluate(() => window.__perf);
+  ok('perf cls', load.cls < 0.02, `layout shift ${load.cls.toFixed(4)} (budget 0.02)`);
+  ok('perf lcp', load.lcp > 0 && load.lcp < 2500, `largest paint ${Math.round(load.lcp)} ms (budget 2500, local server)`);
+  ok('perf bytes', bytes < 1.5e6 && requests < 45, `first visit ${(bytes / 1e6).toFixed(2)} MB in ${requests} requests (budget 1.5 MB, 45)`);
+  const m0 = Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map((x) => [x.name, x.value]));
+  const before = (await page.evaluate(() => window.__perf.long.length));
+  await page.waitForTimeout(5000);
+  const m1 = Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map((x) => [x.name, x.value]));
+  const script = (m1.ScriptDuration - m0.ScriptDuration) / 5, longAfter = (await page.evaluate(() => window.__perf.long)).slice(before);
+  ok('perf script', script < 0.10, `steady-state script ${(script * 100).toFixed(1)}% of the main thread (budget 10%)`);
+  ok('perf long tasks', longAfter.every((d) => d <= 100), `no long tasks over 100 ms after load (${longAfter.join(', ') || 'none'})`);
+  await ctx.close();
+  const fps = async (hash) => {
+    const c = await browser.newContext({ viewport: VIEWPORTS.desktop }), p = await c.newPage();
+    await p.goto(base + '/#' + hash); await p.waitForSelector('[data-test=clock]'); await p.waitForTimeout(2500);
+    const f = await p.evaluate(() => new Promise((r) => { let n = 0; const t0 = performance.now(); const tick = () => { n++; performance.now() - t0 < 2000 ? requestAnimationFrame(tick) : r(n / 2); }; requestAnimationFrame(tick); }));
+    await c.close(); return Math.round(f);
+  };
+  const clear = await fps('t=2026-06-21T13:00&sky=clear'), night = await fps('t=2026-06-21T23:30&sky=clear'), rain = await fps('t=2026-11-22T22:00&sky=rain');
+  ok('perf fps', clear >= 40 && night >= 40, `frames per second here (software rendering is the floor): clear day ${clear}, clear night ${night}, rainy night ${rain} (logged)`);
+}
+lap('perf');
 lap('controls');
 // ---- accessibility (axe-core, WCAG 2 A/AA + best practice) ----
 if (want('axe')) {

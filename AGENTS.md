@@ -29,6 +29,8 @@ the baked layers or their tuning without the owner.
 - `scripts/` - `verify-static.mjs` (no-browser checks on `dist/`), `verify.mjs` (Playwright acceptance),
   `states.mjs` (the states it renders), `serve.mjs` (test server that applies `_headers` and 404s like
   Cloudflare), with `*.test.mjs` for the first and last.
+- `tests/visual/` - visual baselines (half-size PNGs) for `scripts/visual.mjs`. `verify.mjs` `perf` is the performance budget
+  (CLS, LCP, bytes, requests, script share, long tasks, frame rates).
 - `docs/handoff/` - the handoff README and its 21 reference screenshots, verbatim. Do not edit.
 - `nix/` - `checks.nix`, `treefmt.nix`. `flake.nix` - package, checks, apps (`bake`, `deploy`), devenv shell.
 - `tmp/`, `.superpowers/`, `.claude/` - scratch, gitignored, never committed.
@@ -42,6 +44,7 @@ the baked layers or their tuning without the owner.
 | Build | `npm run build` (runs `npm test` and the upkeep check first, via `prebuild`) or `nix build` |
 | Static checks | `node scripts/verify-static.mjs [dir]` |
 | Browser acceptance | `npm run build && npm run verify` (filters: `node scripts/verify.mjs controls axe`) |
+| Visual regression | `npm run build && npm run test:visual` (8 key moments vs `tests/visual/`; after an intended change: `node scripts/visual.mjs --update` and commit the PNGs) |
 | Properties | `npm run test:ui` (Bombadil, 60 s x 3 runs) or `node tests/ui/run.mjs 5m` before a release |
 | Everything non-browser | `nix flake check --impure` |
 | Format | `nix fmt` (nix/json/yaml only; handoff sources keep their delivered formatting) |

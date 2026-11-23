@@ -251,7 +251,8 @@ export class Hero extends View {
     // glitter path on the water, under the sun by day or the moon by night
     const inView = (az) => sky.ss(150, 160, az) * sky.ss(210, 200, az);
     const sunGl = sky.ss(3, 9, el) * sky.ss(42, 26, el) * Math.pow(1 - cloud, 1.5) * (1 - fog) * inView(s.az) * (1 - 0.6 * haze);
-    const moonGl = moonLight * inView(mn.az) * sky.ss(3, 12, mn.el);
+    // a glint needs a clear line to the moon, as the sun's does (moonLight keeps 20% under cloud for the diffuse glow)
+    const moonGl = mn.illum * sky.ss(-1, 14, mn.el) * Math.pow(1 - cloud, 1.5) * (1 - fog) * w[4] * inView(mn.az) * sky.ss(3, 12, mn.el);
     const glit = Math.max(sunGl, moonGl), glX = (azX(sunGl >= moonGl ? s.az : mn.az) * 100).toFixed(1);
     const glC = sunGl >= moonGl ? (el < 12 ? '255,214,160' : '255,250,236') : '206,220,255';
     const glitterGradient = 'linear-gradient(90deg, rgba(0,0,0,0) calc(' + glX + '% - 80px), rgba(0,0,0,.9) ' + glX + '%, rgba(0,0,0,0) calc(' + glX + '% + 80px))', glitterColor = 'rgb(' + glC + ')';

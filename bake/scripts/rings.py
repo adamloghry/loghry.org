@@ -2,7 +2,7 @@
 
 The handoff's rings were hand-made (33 rings, 7-27 px wide at 1080 px) and their generator was lost; from ~1 km up they
 read as stones dropped in the lake (owner, 2026-11-22: "much smaller, not correctly proportioned"). Here: many rings a
-couple of pixels across, flattened and shrunk by perspective like everything else on the ground plane, scattered over
+couple of pixels across and faint (too busy otherwise), flattened and shrunk by perspective like everything else on the ground plane, scattered over
 the water mask. Output: out/ringsw1.webp, out/ringsw2.webp (1080 x 1080, white on transparent), installed by install.py.
 """
 import numpy as np, os
@@ -25,14 +25,14 @@ for frame in (1, 2):
     taken = np.zeros((SIZE, SIZE), bool)          # ripples do not overlap; keeps each ring its own size
     placed = 0
     for k in rng.permutation(len(ys)):
-        if placed >= 1400: break
+        if placed >= 700: break          # owner, 2026-11-22: too busy at 1,400
         if taken[max(0, ys[k] - 4):ys[k] + 5, max(0, xs[k] - 5):xs[k] + 6].any(): continue
         taken[ys[k], xs[k]] = True; placed += 1
         y, x = ys[k] / SIZE, xs[k] / SIZE
         s = s_of(y)
         rx = (0.9 + 1.6 * rng.random()) * (0.35 + 0.65 * s)     # half-width, px at 1080: about 0.4 .. 2.5
         ry = rx * (0.30 + 0.25 * s)                              # seen obliquely: flatter with distance
-        a = int(255 * (0.35 + 0.5 * rng.random()))
+        a = int(255 * (0.25 + 0.35 * rng.random()))
         cx, cy = xs[k] * SS, ys[k] * SS
         d.ellipse([cx - rx * SS, cy - ry * SS, cx + rx * SS, cy + ry * SS], outline=a, width=max(1, SS // 2))
     alpha = big.resize((SIZE, SIZE), Image.LANCZOS)

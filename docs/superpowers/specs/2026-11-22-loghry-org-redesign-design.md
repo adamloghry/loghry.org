@@ -298,7 +298,8 @@ do not push.
 - 2026-11-22: rain rings on the water much smaller. The handoff's two
   hand-made frames (33 rings, 7-27 px wide at 1080 px; generator lost) read as
   stones dropped in the lake from ~1 km up. `bake/scripts/rings.py` now
-  generates them: 1,400 non-overlapping ripples per frame, at most 4 px wide,
+  generates them: 700 faint non-overlapping ripples per frame (owner: really
+  subtle; was 1,400), at most 4 px wide, shown at 0.35 of the old opacity,
   flattened and shrunk by perspective, scattered over the water mask (the
   script asserts the size). `bake/static/ringsw*.webp` are gone.
 

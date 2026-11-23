@@ -324,7 +324,7 @@ export class Hero extends View {
       rippleColor: rgb(mix([[255, 255, 255], [255, 236, 214], [255, 236, 214], [196, 206, 236], [120, 130, 160]])),
       rippleOpacity: ((0.05 + 0.2 * wind.speed) * (0.45 + 0.55 * dayish) * (1 - fog)).toFixed(3),
       ripplePlay: dayish > 0.6 ? 'running' : 'paused', glitterGradient, glitterColor, glitterOpacity: Math.min(0.75, glit * 0.7).toFixed(3),
-      ringsOpacity: (rain * (0.25 + 0.4 * dayish + 0.2 * on)).toFixed(3),
+      ringsOpacity: (rain * (0.25 + 0.4 * dayish + 0.2 * on) * 0.35).toFixed(3),   // owner, 2026-11-22: really subtle at most
       streetsOpacity: (on * lightK).toFixed(3),
       windowsOpacity: (on * win * lightK).toFixed(3),
       shimmerOpacity: (on * 0.45).toFixed(3),

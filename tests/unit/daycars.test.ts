@@ -72,3 +72,13 @@ describe('holiday lights (December)', () => {
     expect(+v.holidayOpacity).toBeLessThanOrEqual(0.8 * 0.3);
   });
 });
+
+describe('rain rings on the water', () => {
+  // Owner, 2026-11-22: the dots on the water were too busy; really subtle at most.
+  it('stay faint even in a downpour by day', () => {
+    const v = new Hero({ moment: '2026-11-22T13:00', sky: 'rain', box: () => ({ w: 1440, h: 900 }), siteUrl: 'x', photoCredit: 'x', photoUrl: 'y', buildDate: 'd', buildCommit: 'c' }).renderVals();
+    expect(v.show.rings).toBe(true);
+    expect(+v.ringsOpacity).toBeGreaterThan(0);
+    expect(+v.ringsOpacity).toBeLessThanOrEqual(0.25);
+  });
+});

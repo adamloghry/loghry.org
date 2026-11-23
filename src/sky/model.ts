@@ -71,6 +71,56 @@ export function cloudVelocity(wind: { speedQ: number; flow: number }): number {
   return wind.flow * (0.45 + 1.5 * wind.speedQ) / 260;
 }
 
+// SCHEDULES — typical patterns for the moving things, shaped like the real services but not their timetables (review
+// yearly with the calendar; tests/upkeep.mjs reminds). Only scheduled traffic: no display flying (owner rule, AGENTS.md).
+export const SCHEDULES_REVIEWED = 2026;
+export const FERRY_VISIBLE_S = 825;       // seconds of a crossing seen in Elliott Bay, leaving or arriving at Colman Dock
+const FERRY_ROUTES: Record<string, { crossing: number; every: number; seattle: [number, number]; other: [number, number]; weekendLate: number }> = {
+  // minutes after local midnight (values past 1440 run after midnight); weekendLate delays the first boats on Sat/Sun
+  bainbridge: { crossing: 35, every: 50, seattle: [330, 1460], other: [285, 1415], weekendLate: 40 },
+  bremerton: { crossing: 60, every: 85, seattle: [360, 1470], other: [290, 1400], weekendLate: 0 },
+};
+const localSec = (ms: number) => { const p = sky.parts(ms); return { p, t: p.h * 3600 + p.mi * 60 + Math.floor(((ms / 1000) % 60 + 60) % 60), dow: (k: number) => new Date(Date.UTC(p.y, p.mo - 1, p.d + k)).getUTCDay() }; };
+/** Ferries in the frame at `ms`: elapsedS is seconds into the visible part of the crossing (0 at the dock leaving, or
+ *  0 as an arriving boat enters the frame). */
+export function ferriesAt(ms: number): { id: string; route: string; dir: 'out' | 'in'; elapsedS: number }[] {
+  const { t, dow } = localSec(ms), out: { id: string; route: string; dir: 'out' | 'in'; elapsedS: number }[] = [];
+  for (const [route, R] of Object.entries(FERRY_ROUTES)) for (const k of [-1, 0]) {
+    const late = dow(k) === 0 || dow(k) === 6 ? R.weekendLate : 0, base = k * 86400;
+    for (let d = R.seattle[0] + late; d <= R.seattle[1]; d += R.every) {
+      const e = t - (base + d * 60); if (e >= 0 && e <= FERRY_VISIBLE_S) out.push({ id: `${route}-out-${k}-${d}`, route, dir: 'out', elapsedS: e });
+    }
+    for (let d = R.other[0] + late; d <= R.other[1]; d += R.every) {
+      const e = t - (base + (d + R.crossing) * 60 - FERRY_VISIBLE_S); if (e >= 0 && e <= FERRY_VISIBLE_S) out.push({ id: `${route}-in-${k}-${d}`, route, dir: 'in', elapsedS: e });
+    }
+  }
+  return out;
+}
+/** A Kenmore Air-style seaplane movement on Lake Union at `ms`, visible for 48 s: summer every 15 min from 7:30 AM,
+ *  winter every 30 min from 8:30 AM; daylight hours only. */
+export function seaplaneAt(ms: number): { kind: 'takeoff' | 'landing'; elapsedS: number } | null {
+  const { p, t } = localSec(ms), summer = p.mo >= 5 && p.mo <= 9;
+  const plan: [string, number, number, number][] = summer ? [['takeoff', 450, 1170, 30], ['landing', 465, 1215, 30]] : [['takeoff', 510, 990, 60], ['landing', 555, 1035, 60]];
+  for (const [kind, from, to, every] of plan) for (let m = from; m <= to; m += every) {
+    const e = t - m * 60; if (e >= 0 && e < 48) return { kind: kind as 'takeoff' | 'landing', elapsedS: e };
+  }
+  return null;
+}
+// share of 4-minute slots with an airliner on the approach to Sea-Tac seen over the city, by hour
+const ARRIVALS = [0.15, 0.05, 0.03, 0.03, 0.08, 0.35, 0.6, 0.7, 0.7, 0.65, 0.6, 0.6, 0.6, 0.6, 0.62, 0.65, 0.7, 0.72, 0.72, 0.7, 0.68, 0.65, 0.55, 0.35];
+export const AIRCRAFT_VISIBLE_S = 150;
+/** Airliners crossing the frame at `ms` (night-time lights are drawn by the page). Only ever airliners. */
+export function aircraftAt(ms: number): { id: string; kind: 'airliner'; lane: number; elapsedS: number }[] {
+  const out: { id: string; kind: 'airliner'; lane: number; elapsedS: number }[] = [], s = Math.floor(ms / 1000), slot = Math.floor(s / 240);
+  for (const k of [slot - 1, slot]) {
+    const p = sky.parts(k * 240000), rate = ARRIVALS[p.h];
+    if (sky.hash(k, 41) >= rate) continue;
+    const e = s - (k * 240 + Math.floor(sky.hash(k, 42) * 200));
+    if (e >= 0 && e < AIRCRAFT_VISIBLE_S) out.push({ id: `air-${k}`, kind: 'airliner', lane: Math.floor(sky.hash(k, 43) * 3), elapsedS: e });
+  }
+  return out;
+}
+
 export const sky: any = {
   _ev: null,
   cl(x) { return Math.max(0, Math.min(1, x)); },

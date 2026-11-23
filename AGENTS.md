@@ -64,6 +64,8 @@ ships WebKit/Firefox for Playwright on Linux only); Bombadil uses Chromium. All 
   browser clock and checks the live clock and almanac date from Tokyo and UTC.
 - **Same sky for everyone.** Weather is a hash of Seattle date and hour weighted by Sea-Tac 1991-2020 normals; it is
   typical, not a forecast.
+- **No Blue Angels, ever** (owner): no airshow or display flying, no Seafair event, only scheduled traffic
+  (`aircraftAt` draws airliners only). `tests/unit/schedules.test.ts` guards it.
 - **Fixed camera**, **no sound**, **no named relatives or dates**. The owner's own name (humans.txt) is fine.
 - Nothing shipped mentions the retired `akl.io`, analytics, or keybase (`S-BANNED`).
 
@@ -74,6 +76,7 @@ ships WebKit/Firefox for Playwright on Linux only); Bombadil uses Chromium. All 
 | Calendar events | `sky.calendar` in `src/sky/model.ts`; bump `CALENDAR_REVIEWED` | Yearly; `tests/upkeep.mjs` warns |
 | Weather normals | `NORMALS`, `NORMALS_PERIOD` in `model.ts` | When NOAA publishes 2001-2030 (~2031) |
 | Photo credit | `SITE.photo` in `src/site.ts` | Only if the photo changes |
+| Ferry, seaplane and arrival patterns (typical, not timetables) | `FERRY_ROUTES`, `seaplaneAt`, `ARRIVALS` in `model.ts`; bump `SCHEDULES_REVIEWED` | Yearly; `tests/upkeep.mjs` warns |
 
 ## Deploy
 

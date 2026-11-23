@@ -7,6 +7,10 @@
 @keyframes lk-fall512{from{transform:translateY(0)}to{transform:translateY(512px)}}
 @keyframes lk-in{from{offset-distance:0%;transform:scale(.28)}to{offset-distance:100%;transform:scale(1.15)}}
 @keyframes lk-out{from{offset-distance:0%;transform:scale(1.15)}to{offset-distance:100%;transform:scale(.28)}}
+@keyframes lk-ferry-run{0%{offset-distance:0%;opacity:0}4%,94%{opacity:1}100%{offset-distance:100%;opacity:0}}
+@keyframes lk-ferry-in{0%{offset-distance:100%;opacity:0}6%,96%{opacity:1}100%{offset-distance:0%;opacity:0}}
+@keyframes lk-air{0%{offset-distance:0%;opacity:0;transform:scale(1)}8%,88%{opacity:1}100%{offset-distance:100%;opacity:0;transform:scale(.45)}}
+@keyframes lk-strobe{0%,8%{opacity:1}9%,100%{opacity:0}}
 @keyframes lk-ferry{0%{offset-distance:0%;opacity:0}3%{opacity:1}55%{offset-distance:100%;opacity:1}56%,100%{offset-distance:100%;opacity:0}}
 @keyframes lk-blink{0%,46%{opacity:1}50%,96%{opacity:.08}100%{opacity:1}}
 @keyframes lk-ripx{from{-webkit-mask-position:0 0;mask-position:0 0}to{-webkit-mask-position:-384px 0;mask-position:-384px 0}}
@@ -36,7 +40,9 @@
 .lk-anim .lk-ring-b{animation:lk-pulse 1.4s steps(4) infinite;animation-delay:-.7s}
 .lk-anim .lk-flash{animation:lk-flash 1.3s ease-in-out infinite}
 .lk-still .lk-car{display:none}
-.lk-car[data-off]{visibility:hidden}  /* outside this hour's traffic; keeps animating so the rest never restart */
+.lk-car[data-off]{visibility:hidden}
+.lk-strobe{position:absolute;left:-1px;top:-1px;width:2px;height:2px;border-radius:50%;background:#fff;box-shadow:0 0 4px 1px rgba(255,255,255,.7);animation:lk-strobe 1.3s steps(1,end) infinite}
+.lk-navlight{position:absolute;left:2px;top:-1px;width:2px;height:2px;border-radius:50%;background:#ff4a3a;box-shadow:0 0 3px rgba(255,70,50,.8);animation:lk-strobe 2.1s steps(1,end) infinite;animation-delay:-.6s}  /* outside this hour's traffic; keeps animating so the rest never restart */
 .lk-paused *{animation-play-state:paused !important}
 
 .lk-plate,.lk-fade{transition:opacity 2.4s ease, background-color 2.4s ease}

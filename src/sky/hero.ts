@@ -1,7 +1,7 @@
 // @ts-nocheck — ported from the design canvas; the model it calls is unit-tested
 // The hero: turns the model's numbers into layer opacities, colours and moving things, and draws them through the template.
 import template from './hero.html?raw';
-import { sky, trafficLevel, lapseMoment, dragMinutes, LAPSE_MS, cloudVelocity } from './model';
+import { sky, trafficLevel, lapseMoment, dragMinutes, LAPSE_MS, cloudVelocity, ferriesAt, seaplaneAt, aircraftAt, FERRY_VISIBLE_S, AIRCRAFT_VISIBLE_S } from './model';
 import { View } from './view';
 import { assets } from './assets';
 
@@ -290,10 +290,11 @@ export class Hero extends View {
     const mv = this.buildMovers(still);
 
     // seaplanes: daylight only; one movement per 10-minute slot, fewer in winter. Heading into the wind.
-    const slot = Math.floor(st.now / 600000), summer = p.mo >= 5 && p.mo <= 9;
-    const planeOn = event === 'seaplane' || (el > 3 && fog < 0.3 && snowing < 0.3 && sky.hash(slot, 21) < (summer ? 0.85 : 0.4));
-    const south = wind.dir > 0, takeoff = sky.hash(slot, 22) < 0.5;
-    const pDelay = still ? 24 + (takeoff ? 0 : 8) : (st.now / 1000) % 600;
+    // On a typical Kenmore Air-style pattern (owner, 2026-11-22); the event hook still forces one for previews.
+    const sp = seaplaneAt(ms), slot = Math.floor(st.now / 600000), summer = p.mo >= 5 && p.mo <= 9;
+    const planeOn = event === 'seaplane' || (!!sp && el > 3 && fog < 0.3 && snowing < 0.3);
+    const south = wind.dir > 0, takeoff = sp ? sp.kind === 'takeoff' : sky.hash(slot, 22) < 0.5;
+    const pDelay = still ? 24 + (takeoff ? 0 : 8) : sp ? sp.elapsedS : (st.now / 1000) % 600;
     const planeStyle = 'position:absolute;left:0;top:0;width:0;height:0;offset-path:path(\'' + (south ? mv.planeS : mv.planeN) + '\');offset-rotate:auto;animation:' + (takeoff ? 'lk-takeoff' : 'lk-landing') + ' 600s linear infinite;animation-delay:-' + pDelay.toFixed(1) + 's' + (still ? ';animation-play-state:paused' : '');
     const planeWake = 'position:absolute;right:4px;top:-1px;width:54px;height:2px;border-radius:2px;background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.85));animation:' + (takeoff ? 'lk-wake-to' : 'lk-wake-ld') + ' 600s linear infinite;animation-delay:-' + pDelay.toFixed(1) + 's' + (still ? ';animation-play-state:paused' : '');
     const nBoats = el > 0 ? (summer ? 6 : 3) : 1;
@@ -375,7 +376,7 @@ export class Hero extends View {
         sun: sunAmp > 0.01, moonGlow: moonLight > 0.03,
         rainbow: rainbowOpacity > 0.02, ripples: fog < 0.6 && rain < 0.08, glitter: glit > 0.03, rings: rain > 0.08,
         lights: on > 0.01, bloom: on > 0.05 && (rain > 0.2 || fog > 0.2 || snowCover > 0), holiday: holiday && on > 0.05, drawn: drawn && on > 0.05,
-        boats: fog < 0.7, sails: event === 'duckdodge', plane: planeOn,
+        boats: fog < 0.7, ferries: fog < 0.8, sails: event === 'duckdodge', plane: planeOn,
         cars: !still && on > 0.05, dayCars: !still && on < 0.95, beacons: on > 0.1,
         fireworks: fwOn, fwLake: event === 'july4',
         stars: nightish > 0.3 && cloud < 0.7 && fog < 0.3,
@@ -413,7 +414,18 @@ export class Hero extends View {
       carsOpacity: sky.ss(0.05, 0.6, on).toFixed(3),
       beaconOpacity: (0.9 * sky.ss(0.1, 0.7, on)).toFixed(3),
       veilDir: wind.flow >= 0 ? 'normal' : 'reverse',   // the rain veil drifts with the wind
-      ferryStyle: 'position:absolute;left:0;top:0;width:4px;height:3px;margin:-1px 0 0 -2px;border-radius:2px;background:#fffaf0;box-shadow:0 0 5px 2px rgba(255,248,230,' + (0.25 + 0.6 * on).toFixed(2) + ');offset-path:path(\'M813.6 250.6 L921.6 233.3 L1036.8 213.1 L1180.8 190.1 L1324.8 169.9 L1483.2 152.6\');offset-rotate:0deg;animation:lk-ferry 1500s linear infinite;animation-delay:-' + ((st.now / 1000) % 1500).toFixed(0) + 's',
+      // Washington State Ferries in Elliott Bay on a typical sailing pattern (owner, 2026-11-22): hulls by day, lights by night.
+      ferries: fog < 0.8 ? ferriesAt(ms).map((f) => {
+        const path = { bainbridge: 'M813.6 250.6 L960 248 L1110 244 L1260 240 L1440 236', bremerton: 'M813.6 250.6 L960 240 L1110 228 L1260 215 L1440 200' }[f.route];
+        const body = on > 0.4
+          ? 'width:4px;height:3px;margin:-1.5px 0 0 -2px;border-radius:2px;background:#fffaf0;box-shadow:0 0 5px 2px rgba(255,248,230,' + (0.25 + 0.6 * on).toFixed(2) + ')'
+          : 'width:7px;height:3px;margin:-1.5px 0 0 -3.5px;border-radius:2px;background:#f3f1ea;box-shadow:0 1px 1px rgba(0,0,0,.35),-6px 0 5px -1px rgba(255,255,255,.35)';
+        return { style: 'position:absolute;left:0;top:0;' + body + ';offset-path:path(\'' + path + '\');offset-rotate:auto;animation:' + (f.dir === 'out' ? 'lk-ferry-run' : 'lk-ferry-in') + ' ' + FERRY_VISIBLE_S + 's linear forwards;animation-delay:-' + f.elapsedS.toFixed(0) + 's' + (still ? ';animation-play-state:paused' : '') };
+      }) : [],
+      // airliners on the approach south over the city: lights at night, high and slow, blinking (never display flying)
+      aircraft: on > 0.3 && cloud < 0.85 && !still ? aircraftAt(ms).map((a) => ({
+        style: 'position:absolute;left:0;top:0;width:0;height:0;offset-path:path(\'' + ['M1010 470 L930 260 L860 110', 'M1120 500 L1010 280 L930 120', 'M1230 520 L1100 300 L1000 130'][a.lane] + '\');animation:lk-air ' + AIRCRAFT_VISIBLE_S + 's linear forwards;animation-delay:-' + a.elapsedS.toFixed(0) + 's',
+      })) : [],
       bursts: event === 'newyear' ? mv.newyear : mv.july4, fireworksOpacity: (1 - 0.75 * fog).toFixed(2),
       starsOpacity: (nightish * Math.pow(1 - cloud, 2) * (1 - 0.6 * moonLight)).toFixed(3),
       litRainOpacity: (rain * on * 0.95).toFixed(3), litRainTilt: tiltBox(tilt) + ';overflow:hidden',

@@ -42,6 +42,7 @@
 .lk-paused *{animation-play-state:paused !important}
 
 .lk-plate,.lk-fade{transition:opacity 2.4s ease, background-color 2.4s ease}
+.lk-lapse .lk-plate,.lk-lapse .lk-fade{transition:none}   /* a time-lapse moves faster than any crossfade */
 .lk-ui{transition:opacity .5s ease}
 
 .lk-fogmask{-webkit-mask-image:url(../assets/sky/fog_a.webp);mask-image:url(../assets/sky/fog_a.webp);-webkit-mask-size:100% 100%;mask-size:100% 100%}

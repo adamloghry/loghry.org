@@ -1,7 +1,7 @@
 // @ts-nocheck — ported from the design canvas; the model it calls is unit-tested
 // The hero: turns the model's numbers into layer opacities, colours and moving things, and draws them through the template.
 import template from './hero.html?raw';
-import { sky, trafficLevel } from './model';
+import { sky, trafficLevel, lapseMoment, dragMinutes, LAPSE_MS } from './model';
 import { View } from './view';
 import { assets } from './assets';
 
@@ -10,7 +10,7 @@ export { template };
 export class Hero extends View {
   constructor(props) {
     super(props);
-    this.state = { now: Date.now(), minute: null, moment: sky.parseMoment(props.moment), scrub: false, hide: false, gear: false, hidden: false, copied: null };
+    this.state = { now: Date.now(), minute: null, moment: sky.parseMoment(props.moment), scrub: false, hide: false, gear: false, hidden: false, copied: null, lapse: null, lapseNow: 0 };
     this.reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.box = props.box();
   }
@@ -19,6 +19,51 @@ export class Hero extends View {
     // stop all motion while the tab is in the background
     document.addEventListener('visibilitychange', () => this.setState({ hidden: document.hidden, now: Date.now() }));
     addEventListener('resize', () => { this.box = this.props.box(); this.__draw(); });
+  }
+
+  // ----- time-lapse -----
+  freezeAt(ms) { const q = sky.parts(ms); return { lapse: null, minute: null, moment: { y: q.y, mo: q.mo, d: q.d, min: q.h * 60 + q.mi } }; }
+  toggleLapse(kind, ms) {
+    if (this.state.lapse) { const was = this.state.lapse.kind; this.setState(this.freezeAt(ms)); if (was === kind) return; }
+    const t0 = performance.now();
+    this._coast = null;
+    this.setState({ lapse: { kind, t0, base: ms }, lapseNow: t0, scrub: true });
+    const tick = () => {
+      const L = this.state.lapse; if (!L || L.t0 !== t0) return;
+      const now = performance.now();
+      if (now - t0 >= LAPSE_MS[kind]) { this.setState(this.freezeAt(lapseMoment(kind, L.base, LAPSE_MS[kind]))); return; }
+      this.setState({ lapseNow: now }); requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  // ----- drag to scrub, with a little momentum -----
+  dragStart(e, nowMin) {
+    this._coast = null;
+    this._drag = { x0: e.clientX, y0: e.clientY, min0: nowMin, w: (e.currentTarget && e.currentTarget.getBoundingClientRect().width) || this.box.w, active: false, id: e.pointerId, target: e.currentTarget, lastX: e.clientX, lastT: performance.now(), v: 0 };
+  }
+  dragMove(e) {
+    const D = this._drag; if (!D) return;
+    const dx = e.clientX - D.x0, dy = e.clientY - D.y0;
+    if (!D.active) {
+      if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
+      D.active = true; try { D.target.setPointerCapture(D.id); } catch (_) { /* synthetic events */ }
+      if (this.state.lapse) this.setState({ lapse: null });
+    }
+    const t = performance.now(), dt = Math.max(1, t - D.lastT);
+    D.v = 0.7 * D.v + 0.3 * (dragMinutes(e.clientX - D.lastX, D.w) / dt); D.lastX = e.clientX; D.lastT = t;
+    this.setState({ minute: ((D.min0 + dragMinutes(dx, D.w)) % 1440 + 1440) % 1440, scrub: true });
+  }
+  dragEnd() {
+    const D = this._drag; this._drag = null;
+    if (!D || !D.active || this.reduced || Math.abs(D.v) < 0.01) return;
+    let v = D.v, last = performance.now(); const token = {}; this._coast = token;   // minutes per ms, decaying
+    const coast = () => {
+      if (this._coast !== token) return;
+      const now = performance.now(), dt = now - last; last = now;
+      v *= Math.pow(0.9, dt / 16); if (Math.abs(v) < 0.002) return;
+      this.setState({ minute: (((this.state.minute ?? 0) + v * dt) % 1440 + 1440) % 1440 }); requestAnimationFrame(coast);
+    };
+    requestAnimationFrame(coast);
   }
 
   P(pts) { return 'M' + pts.map(([x, y]) => (x * 1440).toFixed(1) + ' ' + (y * 1440).toFixed(1)).join(' L'); }
@@ -132,8 +177,12 @@ export class Hero extends View {
     let fixedMin = moment ? moment.min : null;
     if (st.minute != null) fixedMin = st.minute;
     if (fixedMin != null) { h = Math.floor(fixedMin / 60) % 24; mi = Math.round(fixedMin % 60); }
-    const ms = (fixedMin != null || moment) ? sky.toUtc(y, mo, d, h, mi) : st.now;
+    let ms = (fixedMin != null || moment) ? sky.toUtc(y, mo, d, h, mi) : st.now;
+    if (st.lapse) ms = lapseMoment(st.lapse.kind, st.lapse.base, st.lapseNow - st.lapse.t0);
     p = sky.parts(ms);
+    // Tell the page which moment is on show (null when live), so the almanac can follow it. Only on change.
+    const shown = (fixedMin != null || moment || st.lapse) ? ms : null;
+    if (P.onMoment && shown !== this._shown) { this._shown = shown; queueMicrotask(() => P.onMoment(shown)); }
     const doy = Math.round((Date.UTC(p.y, p.mo - 1, p.d) - Date.UTC(p.y, 0, 0)) / 86400000);
     const dow = new Date(Date.UTC(p.y, p.mo - 1, p.d)).getUTCDay();
     const ev = sky.dayEvents(p.y, p.mo, p.d);
@@ -299,7 +348,7 @@ export class Hero extends View {
     const offAt = (c) => { const k = Math.round(c.n * traffic[c.dir]); return Math.floor((c.i + 1) * k / c.n) === Math.floor(c.i * k / c.n); };
     const carOff = mv.cars.map(offAt);
     return {
-      a: assets, rootClass: 'lk-root ' + (still ? 'lk-still' : (st.hidden ? 'lk-anim lk-paused' : 'lk-anim')), stageStyle,
+      a: assets, rootClass: 'lk-root ' + (still ? 'lk-still' : (st.hidden ? 'lk-anim lk-paused' : 'lk-anim')) + (st.lapse ? ' lk-lapse' : ''), stageStyle,
       show: {
         p0: PL.p0.show, p1: PL.p1.show, p2: PL.p2.show, p3: PL.p3.show, p3L: PL.p3L.show, p4L: PL.p4L.show, p4E: PL.p4E.show,
         foliage: foliageOpacity > 0.02, snow: snowCover > 0, haze: haze > 0.02 && dayish + eff[3] > 0.05,
@@ -368,7 +417,14 @@ export class Hero extends View {
       sunLine, skyLine, moonLine, showMoonLine: el < -4,
       scrubOpen: st.scrub, scrubExpanded: String(st.scrub), scrubLabel: st.scrub ? 'close' : 'control time',
       toggleScrub: () => this.setState(st.scrub ? { scrub: false, minute: null, moment: null, now: Date.now() } : { scrub: true }),
-      backToNow: () => this.setState({ minute: null, moment: null, now: Date.now() }),
+      backToNow: () => { this._coast = null; this.setState({ minute: null, moment: null, lapse: null, now: Date.now() }); },
+      // time-lapse (owner, 2026-11-22): play a day or a year from the moment on show; press again to stop there
+      canLapse: !this.reduced,
+      dayLapseLabel: st.lapse && st.lapse.kind === 'day' ? 'stop' : 'play day', dayLapsePressed: String(!!(st.lapse && st.lapse.kind === 'day')),
+      yearLapseLabel: st.lapse && st.lapse.kind === 'year' ? 'stop' : 'play year', yearLapsePressed: String(!!(st.lapse && st.lapse.kind === 'year')),
+      playDay: () => this.toggleLapse('day', ms), playYear: () => this.toggleLapse('year', ms),
+      // drag the photo sideways to move through the day (owner, 2026-11-22)
+      onDragStart: (e) => this.dragStart(e, nowMin), onDragMove: (e) => this.dragMove(e), onDragEnd: () => this.dragEnd(),
       minuteVal: nowMin, onMinute: (e) => this.setState({ minute: +e.target.value }),
     };
   }

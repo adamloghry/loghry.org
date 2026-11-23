@@ -9,12 +9,13 @@ import { View } from './view';
 export { template };
 
 export class Almanac extends View {
-  constructor(props) { super(props); this.state = { now: Date.now(), hover: null }; }
+  constructor(props) { super(props); this.state = { now: Date.now(), hover: null, fixed: null }; }   // fixed: the moment the hero shows, or null (live)
   componentDidMount() { this._t = setInterval(() => this.setState({ now: Date.now() }), 60000); }
   componentWillUnmount() { clearInterval(this._t); }
   renderVals() {
     const LAT = 47.6456, LON = -122.3344, rad = Math.PI / 180;
-    const sp = sky.parts(this.state.now), sea = { y: sp.y, mo: sp.mo - 1, d: sp.d, h: sp.h, mi: sp.mi, off: sp.off }, off = sea.off;
+    const live = this.state.fixed == null;
+    const sp = sky.parts(live ? this.state.now : this.state.fixed), sea = { y: sp.y, mo: sp.mo - 1, d: sp.d, h: sp.h, mi: sp.mi, off: sp.off }, off = sea.off;
     const y = sea.y, mo = sea.mo;
     const N = Math.floor((Date.UTC(y, mo, sea.d) - Date.UTC(y, 0, 0)) / 86400000);
     const sol = (n) => {
@@ -77,10 +78,10 @@ export class Almanac extends View {
       const end = new Date(Date.UTC(y, 0, Math.min(n + 4, 365))), span = MS[m1] + ' ' + d1 + (isToday ? '' : '–' + (end.getUTCMonth() === m1 ? '' : MS[end.getUTCMonth()] + ' ') + end.getUTCDate());
       const so = isToday ? t : sol(n), offn = isToday ? off : sky.parts(sky.toUtc(y, m1 + 1, d1, 12, 0)).off;
       const Ln = (m) => ((m + offn) % 1440 + 1440) % 1440, diff = Math.round(so.len - t.len);
-      return (isToday ? 'Today, ' + MS[mo] + ' ' + sea.d : span) + ' · ' + dur(so.len) + ' of daylight · sunrise ' + fmt(Ln(so.rise)) + ' · sunset ' + fmt(Ln(so.set)) + ' ' + (offn === -420 ? 'PDT' : 'PST') + (isToday ? '' : ' · ' + (diff < 0 ? '−' : '+') + (Math.abs(diff) < 60 ? Math.abs(diff) + 'm' : dur(Math.abs(diff))) + ' vs today');
+      return (isToday ? (live ? 'Today, ' : '') + MS[mo] + ' ' + sea.d : span) + ' · ' + dur(so.len) + ' of daylight · sunrise ' + fmt(Ln(so.rise)) + ' · sunset ' + fmt(Ln(so.set)) + ' ' + (offn === -420 ? 'PDT' : 'PST') + (isToday ? '' : ' · ' + (diff < 0 ? '−' : '+') + (Math.abs(diff) < 60 ? Math.abs(diff) + 'm' : dur(Math.abs(diff))) + (live ? ' vs today' : ' vs that day'));
     };
     const monthAt = (i) => MN[i] + ' · highs near ' + HI[i] + '°F, lows near ' + LO[i] + '°F · sun ' + SUN[i] + '% of daylight hours · rain on ' + RAIN[i] + ' days · fog on about ' + Math.round(FOG[i]) + ' day' + (Math.round(FOG[i]) === 1 ? '' : 's');
-    const dayRead = hv && hv.chart === 'day' ? dayAt(hv.i) : 'Now, ' + dayAt(nowMin);
+    const dayRead = hv && hv.chart === 'day' ? dayAt(hv.i) : (live ? 'Now, ' : 'At ') + dayAt(nowMin);
     const yearRead = hv && hv.chart === 'year' ? yearAt(hv.i, false) : yearAt(lens.indexOf(today), true);
     const monthRead = monthAt(hv && hv.chart === 'month' ? hv.i : mo);
     const dayCursorStyle = hv && hv.chart === 'day' ? 'position:absolute;top:-4px;bottom:-4px;width:1px;background:rgba(244,239,230,.85);pointer-events:none;left:' + (hv.i / 1440 * 100).toFixed(2) + '%' : 'display:none';
@@ -99,7 +100,7 @@ export class Almanac extends View {
       this.setState({ hover: { chart, i: Math.max(0, Math.min(SIZE[chart] - 1, next)) } });
     };
     return {
-      dayRead, yearRead, monthRead, dayCursorStyle,
+      dayRead, yearRead, monthRead, dayCursorStyle, title: live ? 'Today over Lake Union' : 'That day over Lake Union',
       onDayMove: at('day'), onYearMove: at('year'), onMonthMove: at('month'),
       onDayKey: key('day'), onYearKey: key('year'), onMonthKey: key('month'),
       onLeave: () => this.setState({ hover: null }),

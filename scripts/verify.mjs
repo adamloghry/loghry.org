@@ -66,7 +66,12 @@ for (const engine of engines) {
   browser = engine === 'chromium' ? chrome : await ENGINES[engine].launch().catch((e) => { ok(pre + 'launch', false, e.message.split('\n')[0]); return null; });
   if (!browser) continue;
 for (const state of states) {
-  const { ctx, page, problems, res } = await open(state);
+  // A browser that crashes is that engine's failure; record it and carry on so the other engines still report.
+  // ...and one that hangs (as WebKit does when its sandbox cannot start) fails after a minute instead of stalling CI.
+  const hung = new Promise((_, no) => setTimeout(() => no(new Error('no page after 60 s')), 60000).unref());
+  const opened = await Promise.race([open(state), hung]).catch((e) => { ok(pre + state.name + ' open', false, 'browser failed: ' + e.message.split('\n')[0]); return null; });
+  if (!opened) break; // the rest of this engine's states would fail the same way
+  const { ctx, page, problems, res } = opened;
   const id = pre + state.name;
   if (state.open) { await page.locator('.lk-gear > button').click(); await page.waitForTimeout(300); }
   const r = await page.evaluate(() => ({
@@ -122,7 +127,7 @@ for (const state of states) {
   await page.screenshot({ path: shots + id.replace(':', '-') + '.png', fullPage: !!state.fullPage });
   await ctx.close();
 }
-  if (browser !== chrome) await browser.close();
+  if (browser !== chrome) await browser.close().catch(() => {});
   lap('states ' + engine);
 }
 browser = chrome;

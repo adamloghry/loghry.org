@@ -13,6 +13,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     name: Flake checks and browser suites
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,6 +28,11 @@ jobs:
       # every flake output. Builds the site (unit tests x3 time zones run in prebuild), astro check, static checks.
       - name: Flake check
         run: nix flake check --impure --no-update-lock-file
+
+      # Ubuntu 24.04 lets only AppArmor-profiled binaries (/usr/bin/bwrap, ...) create unprivileged user namespaces.
+      # WebKit's sandbox runs from the Nix store, so it hangs at launch unless the restriction is lifted. CI only.
+      - name: Allow unprivileged user namespaces (WebKit sandbox)
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: Build for the browser suites
         run: nix develop --impure --command npm run build

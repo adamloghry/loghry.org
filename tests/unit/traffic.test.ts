@@ -60,8 +60,15 @@ describe('I-5 lanes', () => {
     expect(nb.style).toContain('#e8ebf2');
     expect(sb.style).toContain('#e0402e');
   });
-  it('northbound runs on the left (east) of southbound, with a visible gap near the camera', () => {
-    for (const y of [600, 800, 1000]) expect(xAt(path(sb), y) - xAt(path(nb), y)).toBeGreaterThan(3);
+  it('northbound runs on the left (east) of southbound, each in its own carriageway (owner, 2026-11-23: hew to the road)', () => {
+    for (const y of [600, 800, 1000]) expect(xAt(path(sb), y) - xAt(path(nb), y)).toBeGreaterThan(14);
+  });
+  it('the lanes follow the roadway measured on the photo', () => {
+    // centre of the roadway read off the photo (stage px); the two lanes straddle it
+    for (const [y, cx] of [[936, 89], [835, 156], [734, 229], [615, 301], [535, 365], [458, 507], [432, 551], [392, 580]] as const) {
+      const mid = (xAt(path(sb), y) + xAt(path(nb), y)) / 2;
+      expect(Math.abs(mid - cx), `at y ${y}`).toBeLessThan(9);
+    }
   });
   it('the lanes converge with distance (perspective)', () => {
     expect(xAt(path(sb), 400) - xAt(path(nb), 400)).toBeLessThan(xAt(path(sb), 1000) - xAt(path(nb), 1000));
@@ -87,6 +94,25 @@ describe('I-5 has one source of truth', () => {
     const bake = /^I5_CP = \[([\s\S]*?)\]$/m.exec(readFileSync('bake/scripts/lights.py', 'utf8'))![1];
     const page = /const I5_CP = \[([\s\S]*?)\];/.exec(readFileSync('src/sky/hero.ts', 'utf8'))![1];
     expect(nums(page)).toEqual(nums(bake));
+    const bakeH = /^I5_HALF = \[([\s\S]*?)\]$/m.exec(readFileSync('bake/scripts/lights.py', 'utf8'))![1];
+    const pageH = /const I5_HALF = \[([\s\S]*?)\];/.exec(readFileSync('src/sky/hero.ts', 'utf8'))![1];
+    expect(nums(pageH)).toEqual(nums(bakeH));
     expect(nums(bake).length).toBeGreaterThanOrEqual(30);
+  });
+});
+
+describe('I-5 into the distance (owner, 2026-11-23: fade, never cut through buildings)', () => {
+  it('car lanes stop where the freeway disappears into downtown', () => {
+    const mv = (new Hero({ box: () => ({ w: 1440, h: 900 }) }) as any).buildMovers(false);
+    for (const c of mv.cars.filter((x: any) => x.road === 'i5')) {
+      const ys = [.../offset-path:path\('([^']+)'\)/.exec(c.style)![1].matchAll(/-?[\d.]+ (-?[\d.]+)/g)].map((m) => +m[1]);
+      expect(Math.min(...ys) / 1440).toBeGreaterThanOrEqual(0.215);
+    }
+  });
+  it('cars fade in at the far end and out again, instead of popping', async () => {
+    const { readFileSync } = await import('node:fs');
+    const css = readFileSync('src/styles/layers.css', 'utf8');
+    expect(/@keyframes lk-in\{from\{[^}]*opacity:0/.test(css) || /@keyframes lk-in\{0%\{[^}]*opacity:0/.test(css)).toBe(true);
+    expect(/@keyframes lk-out\{.*100%\{[^}]*opacity:0/.test(css) || /@keyframes lk-out\{.*to\{[^}]*opacity:0/.test(css)).toBe(true);
   });
 });

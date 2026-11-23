@@ -8,6 +8,9 @@ describe('build stamp', () => {
   it('falls back to the Cloudflare Workers Builds commit, shortened to 7', () => {
     expect(buildStamp({ WORKERS_CI_COMMIT_SHA: '0123456789abcdef' }, new Date('2026-05-01T00:00:00Z')).commit).toBe('0123456');
   });
+  it('reads the Cloudflare Pages commit (the site deploys with Pages)', () => {
+    expect(buildStamp({ CF_PAGES_COMMIT_SHA: 'fedcba9876543210' }, new Date('2026-05-01T00:00:00Z')).commit).toBe('fedcba9');
+  });
   it('prefers the flake commit over the Cloudflare one', () => {
     expect(buildStamp({ LOGHRY_COMMIT: 'flake00', WORKERS_CI_COMMIT_SHA: 'cf0000000000' }).commit).toBe('flake00');
   });

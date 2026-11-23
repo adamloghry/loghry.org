@@ -6,6 +6,8 @@ Location: Seattle, USA
 /* THANKS */
 Photo: Ryan Wilson, on Unsplash
 https://unsplash.com/photos/aerial-photography-of-city-during-daytime-HkF6feHrGBE
+Map data: © OpenStreetMap contributors (ODbL)
+https://www.openstreetmap.org/copyright
 
 /* SITE */
 Standards: HTML, CSS, TypeScript

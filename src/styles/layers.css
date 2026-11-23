@@ -5,8 +5,8 @@
 @keyframes lk-fall256{from{transform:translateY(0)}to{transform:translateY(256px)}}
 @keyframes lk-fall384{from{transform:translateY(0)}to{transform:translateY(384px)}}
 @keyframes lk-fall512{from{transform:translateY(0)}to{transform:translateY(512px)}}
-@keyframes lk-in{from{offset-distance:0%;transform:scale(.28)}to{offset-distance:100%;transform:scale(1.15)}}
-@keyframes lk-out{from{offset-distance:0%;transform:scale(1.15)}to{offset-distance:100%;transform:scale(.28)}}
+@keyframes lk-in{0%{offset-distance:0%;transform:scale(.28);opacity:0}12%{opacity:1}100%{offset-distance:100%;transform:scale(1.15);opacity:1}}   /* fades in from the distance */
+@keyframes lk-out{0%{offset-distance:0%;transform:scale(1.15);opacity:1}88%{opacity:1}100%{offset-distance:100%;transform:scale(.28);opacity:0}}   /* fades into the distance */
 @keyframes lk-ferry-run{0%{offset-distance:0%;opacity:0}4%,94%{opacity:1}100%{offset-distance:100%;opacity:0}}
 @keyframes lk-ferry-in{0%{offset-distance:100%;opacity:0}6%,96%{opacity:1}100%{offset-distance:0%;opacity:0}}
 @keyframes lk-air{0%{offset-distance:0%;opacity:0;transform:scale(1)}8%,88%{opacity:1}100%{offset-distance:100%;opacity:0;transform:scale(.45)}}

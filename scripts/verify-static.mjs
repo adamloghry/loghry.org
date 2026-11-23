@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 export const REQUIRED = ['index.html', '404.html', '_headers', 'robots.txt', 'humans.txt', 'llms.txt', 'site.webmanifest',
   'favicon.ico', 'icon.svg', 'apple-touch-icon.png', 'og.jpg', 'sitemap-index.xml'];
 // Hosts the page may link out to (the photo credit). Everything it loads must be its own.
-const LINK_HOSTS = new Set(['unsplash.com']);
+const LINK_HOSTS = new Set(['unsplash.com', 'openstreetmap.org']);
 const SITE = 'https://loghry.org';
 const BANNED = [/akl\.io\b/i, /googletagmanager/i, /gtag\(/, /keybase/i];
 const MAX_BYTES = 8 * 1024 * 1024;

@@ -92,17 +92,24 @@ export class Hero extends View {
     // distance like the baked streaks in bake/scripts/lights.py. Seen from the north: northbound (toward the camera,
     // headlights) runs on the left/east, southbound (toward downtown, taillights) on the right/west.
     // I-5 centreline, measured on the photo; the same control points as I5_CP in bake/scripts/lights.py.
-    const I5_CP = [[0.004, 0.75], [0.0195, 0.725], [0.035, 0.7], [0.066, 0.65], [0.0995, 0.6], [0.118, 0.575], [0.129, 0.55], [0.166, 0.5], [0.195, 0.45], [0.232, 0.4], [0.296, 0.355], [0.355, 0.318], [0.3887, 0.29], [0.407, 0.262], [0.41, 0.235], [0.416, 0.205], [0.42, 0.18]];
+    const I5_CP = [[0.01, 0.75], [0.025, 0.72], [0.04, 0.69], [0.05, 0.67], [0.0618, 0.65], [0.0823, 0.62], [0.1083, 0.58], [0.1286, 0.56], [0.159, 0.51], [0.182, 0.474], [0.1999, 0.448], [0.2089, 0.4272], [0.2214, 0.4078], [0.2353, 0.3897], [0.2533, 0.3717], [0.283, 0.359], [0.322, 0.337], [0.343, 0.322], [0.365, 0.312], [0.383, 0.3], [0.396, 0.289], [0.4025, 0.272], [0.406, 0.258], [0.409, 0.245], [0.414, 0.2306], [0.416, 0.205], [0.42, 0.18]];
+    // distance from the centreline to each carriageway's centre by screen y; the same table as I5_HALF in lights.py
+    const I5_HALF = [[0.18, 0.003], [0.25, 0.004], [0.3, 0.005], [0.33, 0.006], [0.4, 0.007], [0.45, 0.008], [0.56, 0.009], [0.59, 0.006], [0.62, 0.005], [0.75, 0.005]];
+    const i5Half = (y) => { const T = I5_HALF; if (y <= T[0][0]) return T[0][1]; for (let i = 1; i < T.length; i++) if (y <= T[i][0]) { const [y0, h0] = T[i - 1], [y1, h1] = T[i]; return h0 + (h1 - h0) * (y - y0) / (y1 - y0); } return T[T.length - 1][1]; };
     // Catmull-Rom through the control points (as the bake's smooth()), so lanes bend instead of kinking.
     const smooth = (P, n = 10) => { const Q = [P[0], ...P, P[P.length - 1]], out = []; for (let i = 1; i < Q.length - 2; i++) { const [p0, p1, p2, p3] = [Q[i - 1], Q[i], Q[i + 1], Q[i + 2]]; for (let k = 0; k < n; k++) { const t = k / n; out.push([0, 1].map((c) => 0.5 * ((2 * p1[c]) + (-p0[c] + p2[c]) * t + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * t * t + (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * t ** 3))); } } out.push(P[P.length - 1]); return out; };
     const I5 = smooth(I5_CP);
     const AURORA = [[0.905, 0.3696], [0.95, 0.3806], [0.98, 0.3906], [1.02, 0.4006]];
+    // off: a number (scaled by perspective) or a function of screen y giving the offset already in perspective
     const lane = (pts, off) => pts.map((q, i) => {
       const a = pts[Math.max(i - 1, 0)], b = pts[Math.min(i + 1, pts.length - 1)];
       const dx = b[0] - a[0], dy = b[1] - a[1], n = Math.hypot(dx, dy) || 1, s = Math.min(1, Math.max(0.035, (q[1] - 0.12) / 0.88));
-      return [q[0] - dy / n * off * s, q[1] + dx / n * off * s];        // the driver's right, in screen coordinates
+      const o = typeof off === 'function' ? off(q[1]) : off * s;
+      return [q[0] - dy / n * o, q[1] + dx / n * o];        // the driver's right, in screen coordinates
     });
-    const nb = this.P(lane([...I5].reverse(), 0.0055)), sb = this.P(lane(I5, 0.0055));   // the two carriageways
+    // cars stop where the freeway disappears behind downtown's towers (owner, 2026-11-23: never through buildings)
+    const I5car = I5.filter((q) => q[1] >= 0.215);
+    const nb = this.P(lane([...I5car].reverse(), i5Half)), sb = this.P(lane(I5car, i5Half));   // the two carriageways, measured
     const an = this.P(lane(AURORA, 0.0018)), as = this.P(lane([...AURORA].reverse(), 0.0018));
     let sd = 9; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
     // Owner, 2026-11-22: subtler traffic. Small, dim points (were 4/3 px with a 6 px glow at .65-.75), fewer and slower.

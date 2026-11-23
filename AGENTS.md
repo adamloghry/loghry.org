@@ -84,14 +84,16 @@ ships WebKit/Firefox for Playwright on Linux only); Bombadil uses Chromium. All 
 
 ## Deploy
 
-- Production is Cloudflare **Workers Builds** (git-connected, like akl.dev and akl.run): it runs `npm ci && npm
-  run build` on Cloudflare (so `prebuild` gates the deploy on the unit tests) and then `npx wrangler deploy` with
-  `wrangler.json` (Worker `loghry-org`, assets-only, `not_found_handling: 404-page`; `previews: {}` is required by
-  `wrangler preview`). On that path the build stamp's commit is `WORKERS_CI_COMMIT_SHA` and its date is the build
-  day (UTC), not the commit day.
-- Manual alternative: `nix build && nix run .#deploy` (needs `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` in the
-  environment). From `trunk` it deploys; from any other branch it uploads a preview version.
-- No secrets live in the repo. Never push or deploy from an agent unless the owner asks.
+- Production is **Cloudflare Pages** (project `loghry-org`, git-connected; production branch `trunk`, other branches
+  and PRs get preview deployments). Pages runs `npm ci && npm run build` (so `prebuild` gates every deploy on the unit
+  tests) and serves `dist/` with `public/_headers`; unknown paths get `404.html`. The build stamp's commit comes from
+  `CF_PAGES_COMMIT_SHA`; its date is the build day (UTC). `wrangler.json` is the Pages config
+  (`pages_build_output_dir`).
+- Manual alternative: `nix build && nix run .#deploy` (needs `CLOUDFLARE_API_TOKEN` with Pages edit rights and
+  `CLOUDFLARE_ACCOUNT_ID` in the environment). It uploads to the same Pages project for the current branch, so only
+  `trunk` is production.
+- No secrets live in the repo. Changes go through PRs against `trunk`; never push to `trunk` or deploy from an agent
+  unless the owner asks.
 
 ## Conventions
 

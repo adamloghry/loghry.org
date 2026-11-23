@@ -1,5 +1,5 @@
 {
-  description = "loghry.org: a fully static site (Astro), built reproducibly and deployed as Cloudflare static assets";
+  description = "loghry.org: a fully static site (Astro), built reproducibly and deployed with Cloudflare Pages";
 
   nixConfig = {
     extra-substituters = [ "https://devenv.cachix.org" ];
@@ -142,8 +142,8 @@
               );
             };
 
-            # nix run .#deploy [dir] -> upload the Nix-built site (or dist/) as the loghry-org Worker's static
-            # assets, bypassing Workers Builds. Credentials come from the environment only.
+            # nix run .#deploy [dir] -> upload the Nix-built site (or dist/) to the loghry-org Cloudflare Pages project,
+            # bypassing the git integration. Credentials come from the environment only.
             deploy = {
               type = "app";
               program = lib.getExe (
@@ -155,9 +155,8 @@
                   ];
                   text = ''
                     export WRANGLER_SEND_METRICS=false
-                    : "''${CLOUDFLARE_API_TOKEN:?set CLOUDFLARE_API_TOKEN (Workers Scripts: Edit)}"
+                    : "''${CLOUDFLARE_API_TOKEN:?set CLOUDFLARE_API_TOKEN (Cloudflare Pages: Edit)}"
                     : "''${CLOUDFLARE_ACCOUNT_ID:?set CLOUDFLARE_ACCOUNT_ID}"
-                    [ -f wrangler.json ] || { echo "run this from the repository root" >&2; exit 2; }
 
                     src="''${1:-}"
                     if [ -z "$src" ]; then
@@ -173,18 +172,11 @@
                     cp -rL "$src" "$work/site"
                     chmod -R u+w "$work/site"
 
-                    # Same Worker config, pointed at the copy.
-                    sed 's|"directory": "./dist"|"directory": "./site"|' wrangler.json > "$work/wrangler.json"
-                    grep -q '"./site"' "$work/wrangler.json" || { echo "error: could not repoint wrangler.json" >&2; exit 1; }
-
                     branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)
-                    echo "deploying $src -> Worker loghry-org (from branch $branch)"
-                    if [ "$branch" = trunk ]; then
-                      wrangler deploy --config "$work/wrangler.json"
-                    else
-                      echo "not on trunk: uploading a preview version instead of deploying"
-                      wrangler versions upload --config "$work/wrangler.json" --preview-alias "$(echo "$branch" | tr -c 'a-z0-9-\n' '-')"
-                    fi
+                    commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)
+                    dirty=false; git diff --quiet HEAD 2>/dev/null || dirty=true
+                    echo "deploying $src -> Pages project loghry-org (branch $branch; only trunk is production)"
+                    wrangler pages deploy "$work/site" --project-name loghry-org --branch "$branch" --commit-hash "$commit" --commit-dirty "$dirty"
                   '';
                 }
               );

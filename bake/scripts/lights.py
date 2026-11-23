@@ -170,83 +170,32 @@ for x, y in cand:
         else:
             add(x, y, C['sodium'] if u > 0.86 else C['led'], (0.30 + 0.55 * rng.random()) * (1.08 if sh > 0.3 else 1.0), 0.6 * s + 0.28)
 
-# ================= 3. Highways and arterials (traced on the photo) =================
-def smooth(P, n=10):
-    """Catmull-Rom through the control points: real streets bend, they do not kink."""
-    P = np.asarray(P, float); P2 = np.vstack([P[0], P, P[-1]]); out = []
-    for i in range(1, len(P2) - 2):
-        p0, p1, p2, p3 = P2[i - 1], P2[i], P2[i + 1], P2[i + 2]
-        for t in np.linspace(0, 1, n, endpoint=False):
-            out.append(tuple(0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t ** 3)))
-    out.append(tuple(P[-1])); return out
-# I-5: centre of the roadway, measured row by row on the photo (owner, 2026-11-22/23: the earlier traces rode the
-# Ship Canal Bridge's east edge and ran ~0.02 west of the road approaching the downtown S-curve). Keep in step with I5_CP in src/sky/hero.ts
-# (tests/unit/traffic.test.ts checks).
-I5_CP = [(0.01, 0.75), (0.025, 0.72), (0.04, 0.69), (0.05, 0.67), (0.0618, 0.65), (0.0823, 0.62), (0.1083, 0.58), (0.1286, 0.56), (0.159, 0.51), (0.182, 0.474), (0.1999, 0.448), (0.2089, 0.4272), (0.2214, 0.4078), (0.2353, 0.3897), (0.2533, 0.3717), (0.283, 0.359), (0.322, 0.337), (0.343, 0.322), (0.365, 0.312), (0.383, 0.3), (0.396, 0.289), (0.4025, 0.272), (0.406, 0.258), (0.409, 0.245), (0.414, 0.2306), (0.416, 0.205), (0.42, 0.18)]
-# distance from the centreline to each carriageway's centre, by screen y (measured: the roadway is ~0.02 wide on the Ship
-# Canal Bridge and up to ~0.036 where the express lanes run alongside; narrower toward downtown). Shared with hero.ts.
-I5_HALF = [(0.18, 0.003), (0.25, 0.004), (0.3, 0.005), (0.33, 0.006), (0.4, 0.007), (0.45, 0.008), (0.56, 0.009), (0.59, 0.006), (0.62, 0.005), (0.75, 0.005)]
-def i5_half(y): return float(np.interp(y, [a for a, _ in I5_HALF], [b for _, b in I5_HALF]))
-def offset_abs(P, off_fn, sign):
-    """Offset a polyline sideways by off_fn(y) in screen units (already in perspective), to its right for sign = +1."""
-    P = np.asarray(P, float); Q = []
-    for i in range(len(P)):
-        a = P[max(i - 1, 0)]; b = P[min(i + 1, len(P) - 1)]
-        dx, dy = b - a; n = math.hypot(dx, dy) or 1
-        Q.append((P[i][0] - dy / n * off_fn(P[i][1]) * sign, P[i][1] + dx / n * off_fn(P[i][1]) * sign))
-    return Q
-I5 = smooth(I5_CP)
-AURORA = [(0.915, 0.372), (0.95, 0.38), (0.98, 0.39), (1.01, 0.398)]
-# Eastlake Ave E, traced on the street in the photo (owner, 2026-11-22/23: it was a straight diagonal, then still ran
-# diagonally up the I-5 corridor): up from the Eastlake shops, bending right past the old Steam Plant, round the lake's
-# south-east corner and west along the south shore as Fairview Ave N toward Mercer. Stops at the north end where the
-# street disappears under the photo's clouds.
-EASTLAKE = smooth([(0.260, 0.536), (0.2705, 0.5065), (0.2855, 0.4616), (0.2972, 0.4296), (0.3068, 0.3997), (0.3197, 0.3697),
-                   (0.3325, 0.3505), (0.3496, 0.3334), (0.3720, 0.3220), (0.3920, 0.3120), (0.4050, 0.3030),
-                   (0.4200, 0.2970), (0.4450, 0.2930), (0.4680, 0.2900)])
-# Westlake and Northlake are traced along the line of buildings, inland of the grey marina/haze band that the water
-# mask does not catch. Interim: these traces are to be replaced by OpenStreetMap roads projected through a fitted camera. Northlake starts at the foot of Gas Works,
-# not out in the bay to its west. East of the park (left in frame) it follows the bay's land side and the north bank of the
-# Ship Canal, under the photo's clouds, and passes under I-5 as NE Pacific St (owner, 2026-11-22: it used to end in the water).
-WESTLAKE = [(0.522, 0.279), (0.574, 0.288), (0.600, 0.296), (0.628, 0.310), (0.659, 0.338), (0.700, 0.3585), (0.759, 0.377), (0.815, 0.386), (0.870, 0.390), (1.0, 0.394)]
-# N 34th St / N Northlake Way, traced on the photo (owner, 2026-11-22: make it wind as it does): along the south edge of
-# Gas Works, toward the shore behind the boatyards, on to Fremont (right); east of the park (left) down the diagonal of
-# NE Northlake Way past the marinas, round the bay and along the Ship Canal's north bank under I-5 as NE Pacific St.
-NORTHLAKE = smooth([
-    (-0.01, 0.742), (0.04, 0.724), (0.085, 0.707), (0.13, 0.69), (0.175, 0.669), (0.22, 0.653), (0.265, 0.639), (0.31, 0.628),
-    (0.35, 0.62), (0.385, 0.6145), (0.415, 0.6115), (0.442, 0.6095), (0.462, 0.6055), (0.479, 0.5945), (0.493, 0.576), (0.5055, 0.556),
-    (0.5155, 0.536), (0.5185, 0.518), (0.5135, 0.505), (0.525, 0.5015), (0.545, 0.4995), (0.57, 0.4975), (0.6, 0.4955), (0.625, 0.495),
-    (0.65, 0.496), (0.668, 0.4945), (0.684, 0.4905), (0.7, 0.488), (0.72, 0.4878), (0.745, 0.4892), (0.775, 0.4908), (0.805, 0.4915),
-    (0.835, 0.4925), (0.858, 0.4945), (0.878, 0.4952), (0.9, 0.494), (0.93, 0.4925), (0.965, 0.492), (1.01, 0.4915),
-])
-# No Mercer: a straight trace through South Lake Union to the Needle read as a ruler line (owner, 2026-11-22). The far
-# city there is already lit from the photo's own built pixels (section 2).
-# Owner, 2026-11-22: Westlake, N 34th St (NORTHLAKE) and Eastlake at half strength. Passed to add() as dim=, which raster()
-# applies, so the glint selection and the rng sequence (and so every other light) stay exactly as they were.
-ROAD_DIM = {'westlake': 0.5, 'northlake': 0.5, 'eastlake': 0.5}   # all three arterials at half strength
-ROADS = {'i5': I5, 'aurora': AURORA, 'eastlake': EASTLAKE, 'westlake': WESTLAKE, 'northlake': NORTHLAKE}
-
-# Owner, 2026-11-23: roads must not cut through buildings, and fade into the distance rather than end in a bright line.
-# visible(): 0 where a downtown tower stands in front of the road (the silhouette mask from section 2), fading near it.
-tower_near = ndi.grey_dilation(tower, size=(5, 5))
-def visible(x, y): return float(np.clip(1 - 1.3 * at(tower_near, x, y), 0, 1))
-def i5_fade(y): return float(np.clip((y - 0.205) / 0.06, 0, 1)) ** 1.5      # I-5 dims from y 0.265 and is gone by 0.205
-def trail(P, start=0.72):
-    """Per-sample fade along a polyline: full strength, then trailing off over its last (1 - start)."""
-    pts = polyline_samples(P, lambda y: 0.007 * s_of(y) + 0.0016)
-    d = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(np.asarray(pts), axis=0).T))]); f = d / (d[-1] or 1)
-    return [(x, y, float(1 - np.clip((t - start) / (1 - start), 0, 1)) ** 1.5) for (x, y), t in zip(pts, f)]
-for (x, y) in polyline_samples(I5, lambda y: 0.006 * s_of(y) + 0.0016):
-    s = s_of(y)
-    for sign in (-1, 1):   # luminaires on both shoulders, just outside the carriageways
-        xo, yo = offset_abs([(x, y), (x + 0.01, y - 0.012)], lambda yy: 1.7 * i5_half(yy), sign)[0]
-        add(xo, yo, C['sodium'] if (int(y * 900) % 3 == 0) else C['artery'], 1.15, 1.1 * s + 0.35, dim=i5_fade(yo) * visible(xo, yo))
+# ================= 3. Highways and arterials (OpenStreetMap, projected) =================
+# Owner, 2026-11-23: road lights kept crossing rooftops when traced by hand. Roads now come from OpenStreetMap, projected
+# through a camera fitted to the photo, each sample marked hidden where an OSM building stands in front
+# (bake/osm/README.md). Samples: [x, y, visible, distance m]. Map data (c) OpenStreetMap contributors, ODbL.
+import json as _json
+RS = _json.load(open(os.path.join(HERE, '..', 'osm', 'roadsamples.json')))
+ROAD_DIM = {'westlake': 0.5, 'northlake': 0.5, 'eastlake': 0.5}   # owner, 2026-11-22: arterials at half strength
+def dist_fade(z): return float(np.clip((8000 - z) / 3000, 0, 1)) ** 1.5    # fades out between 5 and 8 km: no bright line into the distance
+def road_runs(name):
+    """Each OSM way as a list of (x, y, strength): hidden samples are 0, smoothed along the way so lights do not flicker."""
+    for seg in RS[name]:
+        v = ndi.uniform_filter1d(np.array([float(p[2]) for p in seg]), 5) if len(seg) > 2 else np.array([float(p[2]) for p in seg])
+        yield [(p[0], p[1], float(np.clip((vv - 0.5) * 2, 0, 1)) * dist_fade(p[3])) for p, vv in zip(seg, v)]
+def thin(run, spacing):
+    """Keep samples at least spacing(y) apart (perspective), like polyline_samples on a traced line."""
+    out, last = [], None
+    for x, y, f in run:
+        if last is None or math.hypot(x - last[0], y - last[1]) >= spacing(y): out.append((x, y, f)); last = (x, y)
+    return out
+for run in road_runs('i5'):   # luminaires along each carriageway (OSM maps each direction as its own way)
+    for x, y, f in thin(run, lambda y: 0.006 * s_of(y) + 0.0016):
+        if f > 0.02: add(x, y, C['sodium'] if (int(y * 900) % 3 == 0) else C['artery'], 0.8, 1.1 * s_of(y) + 0.35, dim=f * 0.6)   # owner, 2026-11-23: dimmer
 for name in ('aurora', 'eastlake', 'westlake', 'northlake'):
-    # Eastlake trails off approaching downtown; N 34th and Westlake trail off toward Fremont (right), not to the frame edge
-    TRAIL = {'eastlake': 0.72, 'northlake': 0.80, 'westlake': 0.85}
-    for (x, y, f) in (trail(ROADS[name], TRAIL[name]) if name in TRAIL else [(x, y, 1.0) for x, y in polyline_samples(ROADS[name], lambda y: 0.007 * s_of(y) + 0.0016)]):
-        if at(water, x, y) > 0.6 and name not in ('aurora',): continue
-        add(x, y, C['artery'], 1.35, 1.1 * s_of(y) + 0.3, dim=ROAD_DIM.get(name, 1) * f * visible(x, y))
+    for run in road_runs(name):
+        for x, y, f in thin(run, lambda y: 0.007 * s_of(y) + 0.0016):
+            if f > 0.02 and at(water, x, y) < 0.6: add(x, y, C['artery'], 1.35, 1.1 * s_of(y) + 0.3, dim=ROAD_DIM.get(name, 1) * f)
 
 # ================= 4. Landmarks =================
 NEEDLE = (0.749, 0.181)
@@ -344,10 +293,12 @@ streets += np.stack([ndi.gaussian_filter(crown.astype(np.float32), 0.8)] * 3, -1
 
 # traffic streaks baked faintly along I-5 (animated cars ride on top in the page)
 streak = np.zeros((N, N, 3), np.float32)
-for sign, col in ((-1, C['head']), (1, C['tail'])):   # the two carriageways; same lanes as the page's cars
-    for (x, y) in polyline_samples(offset_abs(I5, i5_half, sign), lambda y: 0.0008):
-        iy, ix = int(y * N), int(x * N)
-        if 0 <= iy < N and 0 <= ix < N: streak[iy, ix] += col * 0.22 * i5_fade(y) * visible(x, y)
+for run in road_runs('i5'):   # headlights on one side of each carriageway pair, tail lights on the other: by direction of travel
+    for (x0, y0, f0), (x1, y1, f1) in zip(run[:-1], run[1:]):
+        col = C['head'] if y1 > y0 else C['tail']   # moving down the frame = toward the camera = headlights
+        for t in np.linspace(0, 1, max(2, int(math.hypot(x1 - x0, y1 - y0) * N * 1.5))):
+            x, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t; iy, ix = int(y * N), int(x * N)
+            if 0 <= iy < N and 0 <= ix < N: streak[iy, ix] += col * 0.07 * (f0 + (f1 - f0) * t)
 streets += np.stack([ndi.gaussian_filter(streak[..., c], 0.8) for c in range(3)], -1) * 0.9
 
 YY = np.mgrid[0:N, 0:N][0] / N
@@ -393,7 +344,8 @@ def seg(a, b, col, w):
     if at(water, xm, ym) > 0.3 or at(parks, xm, ym) > 0.5 or not (0 <= xm <= 1 and 0 <= ym <= 1): return
     s = s_of(ym); dr.line([P2(*a), P2(*b)], fill=tuple(int(v) for v in col), width=max(1, int(round(w * SS * (0.35 + 0.9 * s)))))
 amber, gold, teal, white = (150, 92, 38), (235, 165, 70), (60, 190, 200), (230, 220, 200)
-ART = dict(ROADS)
+ART = {f'{name}{k}': [(x, y) for x, y, f in run if f > 0.5] for name in ('i5', 'aurora', 'eastlake', 'westlake', 'northlake') for k, run in enumerate(road_runs(name))}
+ART = {k: v for k, v in ART.items() if len(v) > 1}
 ART['n45'] = [(x, ew_y(row_45th, x)) for x in np.linspace(0.30, 1.0, 40)]
 ART['n40'] = [(x, ew_y(row_40th, x)) for x in np.linspace(0.47, 1.0, 40)]
 ART['av1'] = [(ns_x(col_wall, y), y) for y in np.linspace(0.50, 1.0, 30)]
@@ -404,9 +356,11 @@ for name, P_ in ART.items():
             t1 = t0 + 1 / 7
             aa = (a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0); bb = (a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1)
             ym = (aa[1] + bb[1]) / 2; s = s_of(ym)
-            if name not in ('i5', 'aurora') and at(water, (aa[0] + bb[0]) / 2, ym) > 0.3: continue
-            col = white if name in ('i5', 'aurora') else gold
-            dr.line([P2(*aa), P2(*bb)], fill=col, width=max(1, int(round((1.6 if name in ('i5', 'aurora') else 1.1) * SS * (0.3 + 0.9 * s)))))
+            hw = name.startswith(('i5', 'aurora'))
+            if math.hypot(bb[0] - aa[0], bb[1] - aa[1]) > 0.01: continue   # a gap where the road is hidden
+            if not hw and at(water, (aa[0] + bb[0]) / 2, ym) > 0.3: continue
+            col = white if hw else gold
+            dr.line([P2(*aa), P2(*bb)], fill=col, width=max(1, int(round((1.6 if hw else 1.1) * SS * (0.3 + 0.9 * s)))))
 LWa = np.asarray(LW.resize((N, N), Image.LANCZOS)).astype(np.float32) / 255
 edge = (ndi.binary_dilation(water > 0.5, iterations=2) & ~ndi.binary_erosion(water > 0.5, iterations=1)).astype(np.float32)
 edge = ndi.gaussian_filter(edge, 0.7) * (1 - sky)

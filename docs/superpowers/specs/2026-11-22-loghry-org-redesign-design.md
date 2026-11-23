@@ -348,6 +348,14 @@ do not push.
   the street disappears under the photo's clouds. Half strength, like the
   other arterials.
 
+- 2026-11-23: roads from the map. Hand-traced road lines kept crossing rooftops
+  and pavement cannot be told from roofs in this photo, so street lights and
+  I-5's cars now follow OpenStreetMap roads projected through a camera fitted
+  to the photo (Needle top and base, Columbia Center, Steam Plant, Gas Works'
+  tip, I-5 bridge deck; 1-3 thousandths of the frame), and are hidden wherever
+  an extruded OSM building stands in front. Lights fade out between 5 and 8 km.
+  Map data (c) OpenStreetMap contributors, ODbL, credited on the page.
+
 ## Left to the builder
 
 - Exact Astro 7 / vitest 4 breakages and their minimal fixes (keep handoff

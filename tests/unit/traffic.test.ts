@@ -67,7 +67,8 @@ describe('I-5 lanes', () => {
     // centre of the roadway read off the photo (stage px); the two lanes straddle it
     for (const [y, cx] of [[936, 89], [835, 156], [734, 229], [615, 301], [535, 365], [458, 507], [432, 551], [392, 580]] as const) {
       const mid = (xAt(path(sb), y) + xAt(path(nb), y)) / 2;
-      expect(Math.abs(mid - cx), `at y ${y}`).toBeLessThan(9);
+      // hand-measured centres are good to ~10 px; the lanes themselves are OpenStreetMap through the fitted camera
+      expect(Math.abs(mid - cx), `at y ${y}`).toBeLessThan(14);
     }
   });
   it('the lanes converge with distance (perspective)', () => {
@@ -87,17 +88,17 @@ describe('the hero shows traffic for the hour', () => {
   });
 });
 
-describe('I-5 has one source of truth', () => {
-  it('the page and the bake trace the same I-5 control points', async () => {
+describe('I-5 lanes come from the map (bake/osm)', () => {
+  it('the page draws the projected OpenStreetMap carriageways', async () => {
     const { readFileSync } = await import('node:fs');
-    const nums = (s: string) => [...s.matchAll(/-?\d*\.\d+/g)].map((m) => +m[0]);
-    const bake = /^I5_CP = \[([\s\S]*?)\]$/m.exec(readFileSync('bake/scripts/lights.py', 'utf8'))![1];
-    const page = /const I5_CP = \[([\s\S]*?)\];/.exec(readFileSync('src/sky/hero.ts', 'utf8'))![1];
-    expect(nums(page)).toEqual(nums(bake));
-    const bakeH = /^I5_HALF = \[([\s\S]*?)\]$/m.exec(readFileSync('bake/scripts/lights.py', 'utf8'))![1];
-    const pageH = /const I5_HALF = \[([\s\S]*?)\];/.exec(readFileSync('src/sky/hero.ts', 'utf8'))![1];
-    expect(nums(pageH)).toEqual(nums(bakeH));
-    expect(nums(bake).length).toBeGreaterThanOrEqual(30);
+    const L = JSON.parse(readFileSync('src/sky/i5_lanes.json', 'utf8'));
+    for (const d of ['nb', 'sb']) expect(L[d].length).toBeGreaterThan(200);
+    // northbound runs toward the camera (down the frame), southbound away from it
+    expect(L.nb[0][1]).toBeLessThan(L.nb.at(-1)[1]);
+    expect(L.sb[0][1]).toBeGreaterThan(L.sb.at(-1)[1]);
+    const mv = (new Hero({ box: () => ({ w: 1440, h: 900 }) }) as any).buildMovers(false);
+    const nbStyle = mv.cars.find((c: any) => c.road === 'i5' && c.dir === 'nb').style;
+    expect(nbStyle).toContain(`M${L.nb[0][0].toFixed(1)} ${L.nb[0][1].toFixed(1)}`);
   });
 });
 

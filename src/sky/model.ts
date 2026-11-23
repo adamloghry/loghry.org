@@ -54,6 +54,17 @@ export function lightPhase(el: number): string {
   return el >= 6 ? 'daylight' : el >= -0.833 ? 'golden hour' : el >= -6 ? 'civil twilight' : el >= -12 ? 'nautical twilight' : el >= -18 ? 'astronomical twilight' : 'night';
 }
 
+// TIME-LAPSE and DRAG (owner, 2026-11-22). A day lapse runs 24 h in 30 s; a year lapse steps one day per 100 ms at the
+// same Seattle clock time, so the seasons change while the hour stays put (36.5 s for the year).
+export const LAPSE_MS = { day: 30000, year: 36500 };
+export function lapseMoment(kind: 'day' | 'year', base: number, elapsed: number): number {
+  if (kind === 'day') return base + elapsed * (86400000 / LAPSE_MS.day);
+  const p = sky.parts(base), d = new Date(Date.UTC(p.y, p.mo - 1, p.d + Math.floor(elapsed / 100)));
+  return sky.toUtc(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), p.h, p.mi);
+}
+/** Dragging the photo: one full width moves twelve hours; right is later. */
+export const dragMinutes = (dx: number, width: number): number => Math.round(dx / width * 720);
+
 export const sky: any = {
   _ev: null,
   cl(x) { return Math.max(0, Math.min(1, x)); },

@@ -54,6 +54,9 @@ a.lk-link{color:inherit}
 .alm-m1{display:none}
 .alm-fallback{max-width:60ch;margin:0 auto;padding:48px 24px;font-size:19px;line-height:1.5;color:#cfc8bc}
 @media (max-width:700px){.alm-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.alm-m1{display:inline}.alm-m3{display:none}}
+/* drag the photo sideways to move through the day; vertical swipes still scroll */
+.lk-drag{position:absolute;inset:0;touch-action:pan-y;cursor:grab}
+.lk-drag:active{cursor:grabbing}
 /* inspectable almanac charts: pointer, touch drag (sideways; vertical still scrolls) and keyboard */
 .alm-chart{cursor:crosshair;touch-action:pan-y;outline-offset:6px}
 .alm-read{margin:2px 0 0;min-height:2.9em;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;line-height:1.45;color:#cfc8bc}

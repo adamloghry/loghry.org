@@ -222,7 +222,7 @@ if (want('almanac')) {
   const yr = await read('alm-year-read');
   ok('almanac year hover', /^Mar \d+–\d+ · \d+h \d\dm of daylight · sunrise .* (PST|PDT) · [+−]/.test(yr), 'hovering March: ' + yr);
   await page.mouse.move(yb.x + yb.width / 2, yb.y - 60); await settle(page);
-  ok('almanac year leave', (await read('alm-year-read')).startsWith('Today, '), 'leaving the chart returns to today');
+  ok('almanac year leave', /^(Today, )?[A-Z][a-z]{2} \d+ · \d+h/.test(await read('alm-year-read')) && !(await read('alm-year-read')).includes('–'), 'leaving the chart returns to the day on show');
   await day.focus(); await page.keyboard.press('Home'); await settle(page);
   const d0 = await read('alm-day-read');
   await page.keyboard.press('ArrowRight'); await settle(page);
@@ -243,6 +243,48 @@ if (want('almanac')) {
   await t.close();
 }
 lap('almanac');
+// ---- time and motion (owner, 2026-11-22): the almanac follows the moment; time-lapse; drag to scrub ----
+if (want('motion')) {
+  const clock = (p) => p.locator('[data-test=clock]').innerText();
+  const minutes = (c) => { const m = /^(\d+):(\d\d) (AM|PM)/.exec(c); return (+m[1] % 12 + (m[3] === 'PM' ? 12 : 0)) * 60 + +m[2]; };
+  let o = await open({ viewport: VIEWPORTS.desktop, hash: 't=2026-07-04T22:25&sky=clear' });
+  const alm = await o.page.locator('#almanac').textContent();
+  ok('motion almanac follows link', alm.includes('That day over Lake Union') && alm.includes('Saturday, July 4, 2026'), 'a #t= link sets the almanac to that day');
+  await o.ctx.close();
+
+  o = await open({ viewport: VIEWPORTS.desktop, hash: 't=2026-06-21T13:00&sky=clear' });
+  let page = o.page;
+  await page.locator('.lk-status > button').click(); await settle(page);
+  const before = await clock(page);
+  await page.getByRole('button', { name: 'play day' }).click();
+  await page.waitForTimeout(1500);
+  const during = await clock(page);
+  const lapsing = await page.evaluate(() => document.querySelector('.lk-root').classList.contains('lk-lapse'));
+  ok('motion play day', lapsing && minutes(during) - minutes(before) >= 45, `a day lapse moves the clock: ${before.slice(0, 12)} -> ${during.slice(0, 12)}`);
+  ok('motion almanac follows lapse', (await page.locator('#almanac').textContent()).includes('That day over Lake Union'), 'the almanac follows the lapse');
+  await page.getByRole('button', { name: 'stop' }).click(); await settle(page);
+  const stopped = await clock(page); await page.waitForTimeout(600);
+  ok('motion stop', stopped === await clock(page) && !(await page.evaluate(() => document.querySelector('.lk-root').classList.contains('lk-lapse'))), 'stop freezes the moment');
+  await page.getByRole('button', { name: 'play year' }).click(); await page.waitForTimeout(1200);
+  const ydate = await page.locator('#almanac').textContent();
+  ok('motion play year', /June 2[3-9]|July/.test(ydate) && (await clock(page)).slice(0, 8) === stopped.slice(0, 8), 'a year lapse moves the date and keeps the hour');
+  ok('motion clean', o.problems.length === 0, 'no errors during time-lapse ' + o.problems.join(' | '));
+  await o.ctx.close();
+
+  o = await open({ viewport: VIEWPORTS.desktop, hash: 't=2026-06-21T13:00&sky=clear' });
+  page = o.page;
+  await page.mouse.move(700, 300); await page.mouse.down(); await page.mouse.move(850, 305, { steps: 6 }); await page.mouse.move(1000, 310, { steps: 6 }); await page.mouse.up();
+  await settle(page);
+  const dragged = await clock(page);
+  ok('motion drag', minutes(dragged) >= 13 * 60 + 120 && await page.locator('input[type=range]').isVisible(), `dragging the photo 300px right moves time ~2.5 h: ${dragged.slice(0, 12)}`);
+  await o.ctx.close();
+
+  o = await open({ viewport: VIEWPORTS.desktop, hash: 't=2026-06-21T13:00&sky=clear', reduced: true }, { reduced: true });
+  await o.page.locator('.lk-status > button').click(); await settle(o.page);
+  ok('motion reduced', (await o.page.getByRole('button', { name: 'play day' }).count()) === 0, 'no time-lapse under reduced motion');
+  await o.ctx.close();
+}
+lap('motion');
 lap('controls');
 // ---- accessibility (axe-core, WCAG 2 A/AA + best practice) ----
 if (want('axe')) {

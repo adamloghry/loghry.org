@@ -311,6 +311,13 @@ do not push.
   that date's zone, difference from today. Months: highs/lows, sun share, rain
   and fog days. Rain falls at half the handoff's speed.
 
+- 2026-11-22: time and motion. The almanac follows the moment the hero shows
+  (link, slider, drag, time-lapse) and says "That day" when not live. The time
+  panel gets play day (24 h in 30 s) and play year (a day per 100 ms at the
+  same Seattle clock time); crossfades are off during a lapse; hidden under
+  reduced motion. Dragging the photo sideways scrubs time (full width = 12 h,
+  right is later) with momentum, opening the time panel.
+
 ## Left to the builder
 
 - Exact Astro 7 / vitest 4 breakages and their minimal fixes (keep handoff

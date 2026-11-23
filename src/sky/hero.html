@@ -150,6 +150,7 @@
 </div>
 </sc-if>
 
+<div class="lk-drag" aria-hidden="true" onPointerDown="{{onDragStart}}" onPointerMove="{{onDragMove}}" onPointerUp="{{onDragEnd}}" onPointerCancel="{{onDragEnd}}"></div>
 <div class="lk-ui lk-scrim" aria-hidden="true" style="opacity: {{scrimOpacity}}"></div>
 
 <div class="lk-top">
@@ -164,6 +165,7 @@
 <div class="lk-scrub">
 <label><span>Seattle time</span><input class="lk-range" type="range" min="0" max="1435" step="5" value="{{minuteVal}}" aria-valuetext="{{clockShort}}" onChange="{{onMinute}}"></label>
 <button type="button" class="lk-btn lk-link" onClick="{{backToNow}}">back to now</button>
+<sc-if value="{{canLapse}}"><button type="button" class="lk-btn lk-link" onClick="{{playDay}}" aria-pressed="{{dayLapsePressed}}">{{dayLapseLabel}}</button><button type="button" class="lk-btn lk-link" onClick="{{playYear}}" aria-pressed="{{yearLapsePressed}}">{{yearLapseLabel}}</button></sc-if>
 </div>
 </sc-if>
 <div class="lk-status" data-test="status">

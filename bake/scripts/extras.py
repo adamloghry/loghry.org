@@ -22,8 +22,6 @@ w = ndi.gaussian_filter(ndi.binary_erosion(water > 0.5, iterations=2).astype(np.
 save_alpha('water_a.webp', w * (1 - np.clip(cloud * 1.4, 0, 1)), (800, 800))
 lake = w.copy(); lake[: int(0.24 * N)] = 0                      # Lake Union only (no Elliott Bay)
 save_alpha('lake_a.webp', lake, (800, 800))
-# clear of the photo's own clouds: moving traffic is masked by it, so cars never float over a baked cloud (owner, 2026-11-23)
-save_alpha('clear_a.webp', 1 - np.clip(ndi.gaussian_filter(cloud, 2.0) * 1.6, 0, 1), (900, 900))
 
 # deciduous-ish foliage: vegetation that is not the darkest conifer canopy
 nearw = ndi.binary_dilation(water > 0.3, iterations=int(N * 0.006)).astype(np.float32)

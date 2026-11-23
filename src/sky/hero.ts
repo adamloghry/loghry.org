@@ -109,27 +109,30 @@ export class Hero extends View {
     const an = this.P(lane(AURORA, 0.0018)), as = this.P(lane([...AURORA].reverse(), 0.0018));
     let sd = 9; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
     // Owner, 2026-11-22: subtler traffic. Small, dim points (were 4/3 px with a 6 px glow at .65-.75), fewer and slower.
-    const car = (path, kf, ease, dur, delay, head) => 'position:absolute;left:0;top:0;width:' + (head ? 3 : 2) + 'px;height:' + (head ? 3 : 2) + 'px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:' + (head ? '#e8ebf2' : '#e0402e') + ';box-shadow:0 0 3px 1px ' + (head ? 'rgba(240,244,255,.4)' : 'rgba(255,50,30,.38)') + ';offset-path:path(\'' + path + '\');offset-rotate:0deg;animation:' + kf + ' ' + dur + 's ' + ease + ' infinite;animation-delay:-' + delay.toFixed(2) + 's';
+    // fade: a second, linear-time animation that sets only opacity (bake/osm/lanes.py: I-5 under the photo's clouds)
+    const anim = (kf, ease, dur, fade) => kf + ' ' + dur + 's ' + ease + ' infinite' + (fade ? ',' + fade + ' ' + dur + 's linear infinite' : '');
+    const car = (path, kf, ease, dur, delay, head, fade) => 'position:absolute;left:0;top:0;width:' + (head ? 3 : 2) + 'px;height:' + (head ? 3 : 2) + 'px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:' + (head ? '#e8ebf2' : '#e0402e') + ';box-shadow:0 0 3px 1px ' + (head ? 'rgba(240,244,255,.4)' : 'rgba(255,50,30,.38)') + ';offset-path:path(\'' + path + '\');offset-rotate:0deg;animation:' + anim(kf, ease, dur, fade) + ';animation-delay:-' + delay.toFixed(2) + 's';
     // By day the same cars are car-coloured bodies (owner, 2026-11-22: a realistic city by day too): same path and timing
     // as their lights, so at dusk each car becomes its own headlights. Colours follow a typical US mix, muted for the
     // haze; their own stream (sd2) so the boats below keep their randomness.
     const BODY = [['#e9e9e6', 0.25], ['#1d1f22', 0.19], ['#6e7176', 0.18], ['#b9bcc0', 0.11], ['#3a5378', 0.10], ['#8e2a26', 0.09], ['#a59a85', 0.05], ['#44584a', 0.03]];
     let sd2 = 4242; const rnd2 = () => { sd2 = (sd2 * 16807) % 2147483647; return sd2 / 2147483647; };
     const body = () => { let u = rnd2(); for (const [c, w] of BODY) { if ((u -= w) < 0) return c; } return BODY[0][0]; };
-    const dayCar = (path, kf, ease, dur, delay) => 'position:absolute;left:0;top:0;width:3px;height:2px;margin:-1px 0 0 -1.5px;border-radius:1px;background:' + body() + ';box-shadow:0 1px 1px rgba(0,0,0,.35);offset-path:path(\'' + path + '\');offset-rotate:auto;animation:' + kf + ' ' + dur + 's ' + ease + ' infinite;animation-delay:-' + delay.toFixed(2) + 's';
+    const dayCar = (path, kf, ease, dur, delay, fade) => 'position:absolute;left:0;top:0;width:3px;height:2px;margin:-1px 0 0 -1.5px;border-radius:1px;background:' + body() + ';box-shadow:0 1px 1px rgba(0,0,0,.35);offset-path:path(\'' + path + '\');offset-rotate:auto;animation:' + anim(kf, ease, dur, fade) + ';animation-delay:-' + delay.toFixed(2) + 's';
     // Every car that can ever be on the road at the busiest hour; renderVals() hides all but the hour's share.
     const cars = [], dayOnly = [];
     // extra: day-only cars, interleaved with the twins. By day muted bodies can be denser than lights at night (owner:
     // realistic by day, subtle lights by night); they fade with the day layer at dusk.
-    const fleet = (road, dir, n, path, kf, ease, dur, head, extra = 0) => {
+    const fleet = (road, dir, n, path, kf, ease, dur, head, extra = 0, fade = '') => {
       for (let i = 0; i < n; i++) {
         const delay = (i + rnd() * 0.7) * dur / n;
-        cars.push({ road, dir, i, n, style: car(path, kf, ease, dur, delay, head), dayStyle: dayCar(path, kf, ease, dur, delay) });
+        cars.push({ road, dir, i, n, style: car(path, kf, ease, dur, delay, head, fade), dayStyle: dayCar(path, kf, ease, dur, delay, fade) });
       }
-      for (let i = 0; i < extra; i++) dayOnly.push({ road, dir, i, n: extra, dayStyle: dayCar(path, kf, ease, dur, (i + 0.15 + rnd2() * 0.7) * dur / extra) });
+      for (let i = 0; i < extra; i++) dayOnly.push({ road, dir, i, n: extra, dayStyle: dayCar(path, kf, ease, dur, (i + 0.15 + rnd2() * 0.7) * dur / extra, fade) });
     };
-    fleet('i5', 'nb', 16, nb, 'lk-in', 'cubic-bezier(.55,0,.9,.6)', 91, true, 24);     // 91/97 s a pass (owner: 30% slower than 64/68 s)
-    fleet('i5', 'sb', 16, sb, 'lk-out', 'cubic-bezier(.1,.4,.45,1)', 97, false, 24);
+    const bz = (d) => 'cubic-bezier(' + i5Lanes.ease[d].join(',') + ')';   // the bake's easing (its cloud fade is timed to it)
+    fleet('i5', 'nb', 16, nb, 'lk-in', bz('nb'), 91, true, 24, 'lk-i5nb-cloud');     // 91/97 s a pass (owner: 30% slower than 64/68 s)
+    fleet('i5', 'sb', 16, sb, 'lk-out', bz('sb'), 97, false, 24, 'lk-i5sb-cloud');
     fleet('aurora', 'nb', 3, an, 'lk-in', 'linear', 14, true, 3);
     fleet('aurora', 'sb', 3, as, 'lk-out', 'linear', 14, false, 3);
 

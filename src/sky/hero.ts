@@ -32,8 +32,8 @@ export class Hero extends View {
     // Owner, 2026-11-22: subtler traffic. Small, dim points (were 4/3 px with a 6 px glow at .65-.75), fewer and slower.
     const car = (path, kf, ease, dur, delay, head) => ({ style: 'position:absolute;left:0;top:0;width:' + (head ? 3 : 2) + 'px;height:' + (head ? 3 : 2) + 'px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:' + (head ? '#e8ebf2' : '#e0402e') + ';box-shadow:0 0 3px 1px ' + (head ? 'rgba(240,244,255,.4)' : 'rgba(255,50,30,.38)') + ';offset-path:path(\'' + path + '\');offset-rotate:0deg;animation:' + kf + ' ' + dur + 's ' + ease + ' infinite;animation-delay:-' + delay.toFixed(2) + 's' });
     const cars = [];
-    for (let i = 0; i < 14; i++) cars.push(car(nb, 'lk-in', 'cubic-bezier(.55,0,.9,.6)', 64, (i + rnd() * 0.7) * 64 / 14, true));    // was 26 cars, 36 s
-    for (let i = 0; i < 13; i++) cars.push(car(sb, 'lk-out', 'cubic-bezier(.1,.4,.45,1)', 68, (i + rnd() * 0.7) * 68 / 13, false));  // was 24 cars, 38 s
+    for (let i = 0; i < 14; i++) cars.push(car(nb, 'lk-in', 'cubic-bezier(.55,0,.9,.6)', 91, (i + rnd() * 0.7) * 91 / 14, true));    // was 26 cars, 36 s; then 64 s; owner: 30% slower
+    for (let i = 0; i < 13; i++) cars.push(car(sb, 'lk-out', 'cubic-bezier(.1,.4,.45,1)', 97, (i + rnd() * 0.7) * 97 / 13, false));  // was 24 cars, 38 s; then 68 s; owner: 30% slower
     for (let i = 0; i < 2; i++) { cars.push(car(an, 'lk-in', 'linear', 14, i * 7 + rnd() * 2, true)); cars.push(car(as, 'lk-out', 'linear', 14, i * 7 + rnd() * 2, false)); } // Aurora: was 5 each way, 7 s
 
     // boats on the lake and the Ship Canal: slow, with a wake by day and a single light by night

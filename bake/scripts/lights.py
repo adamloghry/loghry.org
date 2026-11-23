@@ -44,8 +44,10 @@ C = {
 }
 
 pts = []   # (x, y, rgb*intensity, radius_px, elong)
-def add(x, y, col, inten, r, elong=1.0, kind=0):
-    pts.append((x, y, col[0] * inten, col[1] * inten, col[2] * inten, r, elong, kind))
+def add(x, y, col, inten, r, elong=1.0, kind=0, dim=1.0):
+    # dim is applied when rasterising, not here: the glint selection below thresholds on intensity and then draws
+    # rng numbers per selected light, so dimming in place would reshuffle every later random draw (tower windows...).
+    pts.append((x, y, col[0] * inten, col[1] * inten, col[2] * inten, r, elong, kind, dim))
 
 def polyline_samples(P, spacing_fn):
     P = np.asarray(P, float); out = []
@@ -87,6 +89,9 @@ row_40th = int(np.argmin([abs(ew_y(k, 0.70) - 0.585) for k in range(len(ew))]))
 col_wall = int(np.argmin([abs(x - 0.64) for x in ns_bottom]))                    # the clear avenue reaching the shore at x~0.64
 col_b = int(np.argmin([abs(x - 0.86) for x in ns_bottom]))
 art_rows, art_cols = {row_45th, row_40th}, {col_wall, col_b}
+# Owner, 2026-11-22: N 45th St and Westlake read too bright; both at half strength. Passed to add() as dim=, which
+# raster() applies, so the glint selection and the rng sequence (and so every other light) stay exactly as they were.
+DIM_45TH, DIM_WESTLAKE = 0.5, 0.5
 
 def fg_ok(x, y):
     if not (0 <= x <= 1 and 0.47 <= y <= 1): return False
@@ -100,7 +105,7 @@ for k in range(len(ew)):
         if not fg_ok(x, y): continue
         s = s_of(y); art = (k in art_rows) or (j in art_cols)
         if art or rng.random() < 0.92:
-            add(x, y, C['artery'] if art else C['led'], (5.0 if art else 3.6) * (0.8 + 0.4 * rng.random()), 2.0 * s + 0.45)
+            add(x, y, C['artery'] if art else C['led'], (5.0 if art else 3.6) * (0.8 + 0.4 * rng.random()), 2.0 * s + 0.45, dim=DIM_45TH if k == row_45th else 1)
         # mid-block along the avenue toward the next row
         if k + 1 < len(ew):
             ym = 0.5 * (ew[k] + ew[k + 1]); xm = ns_x(j, ym); ym = ew_y(k, xm) * 0.5 + ew_y(k + 1, xm) * 0.5
@@ -111,10 +116,10 @@ for k in range(len(ew)):
             for f in (0.25, 0.5, 0.75):
                 xa = ns_x(j, y0) * (1 - f) + ns_x(j + 1, y0) * f; ya = ew_y(k, xa)
                 if fg_ok(xa, ya):
-                    add(xa, ya, C['artery'], 2.8, 1.6 * s + 0.4)
+                    add(xa, ya, C['artery'], 2.8, 1.6 * s + 0.4, dim=DIM_45TH if k == row_45th else 1)
                     if k == row_45th and 0.50 < xa < 0.92:
                         for _ in range(3):
-                            add(xa + (rng.random() - 0.5) * 0.02 * s, ya + (rng.random() - 0.3) * 0.012 * s, C['shop'], 0.9 * rng.random() + 0.3, 1.0 * s + 0.3, kind=1)
+                            add(xa + (rng.random() - 0.5) * 0.02 * s, ya + (rng.random() - 0.3) * 0.012 * s, C['shop'], 0.9 * rng.random() + 0.3, 1.0 * s + 0.3, kind=1, dim=DIM_45TH)
         # arterial columns: denser lights
         if j in art_cols and k + 1 < len(ew):
             for f in (0.25, 0.75):
@@ -176,7 +181,7 @@ for (x, y) in polyline_samples(I5, lambda y: 0.006 * s_of(y) + 0.0016):
 for name in ('aurora', 'eastlake', 'westlake', 'northlake'):
     for (x, y) in polyline_samples(ROADS[name], lambda y: 0.007 * s_of(y) + 0.0016):
         if at(water, x, y) > 0.6 and name not in ('aurora',): continue
-        add(x, y, C['artery'], 1.35, 1.1 * s_of(y) + 0.3)
+        add(x, y, C['artery'], 1.35, 1.1 * s_of(y) + 0.3, dim=DIM_WESTLAKE if name == 'westlake' else 1)
 
 # ================= 4. Landmarks =================
 NEEDLE = (0.749, 0.181)
@@ -200,7 +205,7 @@ def raster(sel_kind):
             if not sel.any(): continue
             Q = Pk[sel]; imp = np.zeros((N, N, 3), np.float32)
             iy = np.clip((Q[:, 1] * N).astype(int), 0, N - 1); ix = np.clip((Q[:, 0] * N).astype(int), 0, N - 1)
-            for c in range(3): np.add.at(imp[..., c], (iy, ix), Q[:, 2 + c])
+            for c in range(3): np.add.at(imp[..., c], (iy, ix), Q[:, 2 + c] * Q[:, 8])
             sig = max(0.45, 0.5 * (lo + min(hi, 3.0)))
             core = np.stack([ndi.gaussian_filter(imp[..., c], (sig * el, sig)) for c in range(3)], -1) * (2 * math.pi * sig * sig * el) ** -1 * 6
             halo = np.stack([ndi.gaussian_filter(imp[..., c], (sig * 4 * el, sig * 4)) for c in range(3)], -1) * (2 * math.pi * (4 * sig) ** 2 * el) ** -1 * 6 * 0.6
@@ -221,7 +226,7 @@ for a in np.radians([18, 78, 138]):
 star[K, K] = 0; star /= star.sum()
 imp = np.zeros((N, N, 3), np.float32)
 iy = np.clip((bright[:, 1] * N).astype(int), 0, N - 1); ix = np.clip((bright[:, 0] * N).astype(int), 0, N - 1)
-for c in range(3): np.add.at(imp[..., c], (iy, ix), bright[:, 2 + c] * (0.5 + bright[:, 1]))
+for c in range(3): np.add.at(imp[..., c], (iy, ix), bright[:, 2 + c] * bright[:, 8] * (0.5 + bright[:, 1]))
 glints = np.stack([fftconvolve(imp[..., c], star, mode='same') for c in range(3)], -1) * 2.2
 streets += glints
 

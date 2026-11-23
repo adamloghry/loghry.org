@@ -16,8 +16,8 @@ describe('traffic', () => {
     expect(i5.filter((c) => c.kf === 'lk-in').length).toBeLessThanOrEqual(16);
     expect(i5.filter((c) => c.kf === 'lk-out').length).toBeLessThanOrEqual(16);
   });
-  it('an I-5 car takes at least a minute to cross the frame', () => {
-    for (const c of i5) expect(c.dur).toBeGreaterThanOrEqual(60);
+  it('an I-5 car takes about a minute and a half to cross the frame (owner: 30% slower than 64/68 s)', () => {
+    for (const c of i5) expect(c.dur).toBeGreaterThanOrEqual(90);
   });
   it('Aurora is quieter: at most 3 cars each way, at least 12 s for the short stretch', () => {
     expect(aurora.length).toBeGreaterThan(0);

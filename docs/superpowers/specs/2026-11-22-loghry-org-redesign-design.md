@@ -252,6 +252,10 @@ do not push.
   Aurora 2 each way at 14 s (were 5 at 7 s), 3/2 px with a 3 px glow at
   0.4 alpha (were 4/3 px, 6 px at 0.65-0.75). Pinned by tests/unit/cars.test.ts;
   the bake changes were checked by eye against the photo and water mask.
+- 2026-11-22: I-5 cars 30% slower (91/97 s per pass); N 45th St and Westlake
+  lights at half strength (`DIM_45TH`, `DIM_WESTLAKE` in `lights.py`, applied at
+  raster time so no other light moves; verified with a before/after difference
+  image).
 
 ## Left to the builder
 

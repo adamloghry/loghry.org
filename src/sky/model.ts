@@ -65,6 +65,77 @@ export function lapseMoment(kind: 'day' | 'year', base: number, elapsed: number)
 /** Dragging the photo: one full width moves twelve hours; right is later. */
 export const dragMinutes = (dx: number, width: number): number => Math.round(dx / width * 720);
 
+/** Cloud drift in loops per second for the wind (one loop is half the cloud layer's width; the handoff's CSS ran
+ *  260 s / (0.45 + 1.5 speedQ) per loop). Signed by the wind's flow, so a turning wind slows the clouds through calm. */
+export function cloudVelocity(wind: { speedQ: number; flow: number }): number {
+  return wind.flow * (0.45 + 1.5 * wind.speedQ) / 260;
+}
+
+// SCHEDULES — typical patterns for the moving things, shaped like the real services but not their timetables (review
+// yearly with the calendar; tests/upkeep.mjs reminds). Only scheduled traffic: no display flying (owner rule, AGENTS.md).
+export const SCHEDULES_REVIEWED = 2026;
+export const FERRY_VISIBLE_S = 825;       // seconds of a crossing seen in Elliott Bay, leaving or arriving at Colman Dock
+const FERRY_ROUTES: Record<string, { crossing: number; every: number; seattle: [number, number]; other: [number, number]; weekendLate: number }> = {
+  // minutes after local midnight (values past 1440 run after midnight); weekendLate delays the first boats on Sat/Sun
+  bainbridge: { crossing: 35, every: 50, seattle: [330, 1460], other: [285, 1415], weekendLate: 40 },
+  bremerton: { crossing: 60, every: 85, seattle: [360, 1470], other: [290, 1400], weekendLate: 0 },
+};
+const localSec = (ms: number) => { const p = sky.parts(ms); return { p, t: p.h * 3600 + p.mi * 60 + Math.floor(((ms / 1000) % 60 + 60) % 60), dow: (k: number) => new Date(Date.UTC(p.y, p.mo - 1, p.d + k)).getUTCDay() }; };
+/** Ferries in the frame at `ms`: elapsedS is seconds into the visible part of the crossing (0 at the dock leaving, or
+ *  0 as an arriving boat enters the frame). */
+export function ferriesAt(ms: number): { id: string; route: string; dir: 'out' | 'in'; elapsedS: number }[] {
+  const { t, dow } = localSec(ms), out: { id: string; route: string; dir: 'out' | 'in'; elapsedS: number }[] = [];
+  for (const [route, R] of Object.entries(FERRY_ROUTES)) for (const k of [-1, 0]) {
+    const late = dow(k) === 0 || dow(k) === 6 ? R.weekendLate : 0, base = k * 86400;
+    for (let d = R.seattle[0] + late; d <= R.seattle[1]; d += R.every) {
+      const e = t - (base + d * 60); if (e >= 0 && e <= FERRY_VISIBLE_S) out.push({ id: `${route}-out-${k}-${d}`, route, dir: 'out', elapsedS: e });
+    }
+    for (let d = R.other[0] + late; d <= R.other[1]; d += R.every) {
+      const e = t - (base + (d + R.crossing) * 60 - FERRY_VISIBLE_S); if (e >= 0 && e <= FERRY_VISIBLE_S) out.push({ id: `${route}-in-${k}-${d}`, route, dir: 'in', elapsedS: e });
+    }
+  }
+  return out;
+}
+/** A Kenmore Air-style seaplane movement on Lake Union at `ms`, visible for 48 s: summer every 15 min from 7:30 AM,
+ *  winter every 30 min from 8:30 AM; daylight hours only. */
+export function seaplaneAt(ms: number): { kind: 'takeoff' | 'landing'; elapsedS: number } | null {
+  const { p, t } = localSec(ms), summer = p.mo >= 5 && p.mo <= 9;
+  const plan: [string, number, number, number][] = summer ? [['takeoff', 450, 1170, 30], ['landing', 465, 1215, 30]] : [['takeoff', 510, 990, 60], ['landing', 555, 1035, 60]];
+  for (const [kind, from, to, every] of plan) for (let m = from; m <= to; m += every) {
+    const e = t - m * 60; if (e >= 0 && e < 48) return { kind: kind as 'takeoff' | 'landing', elapsedS: e };
+  }
+  return null;
+}
+// share of 4-minute slots with an airliner on the approach to Sea-Tac seen over the city, by hour
+const ARRIVALS = [0.15, 0.05, 0.03, 0.03, 0.08, 0.35, 0.6, 0.7, 0.7, 0.65, 0.6, 0.6, 0.6, 0.6, 0.62, 0.65, 0.7, 0.72, 0.72, 0.7, 0.68, 0.65, 0.55, 0.35];
+export const AIRCRAFT_VISIBLE_S = 150;
+/** Airliners crossing the frame at `ms` (night-time lights are drawn by the page). Only ever airliners. */
+export function aircraftAt(ms: number): { id: string; kind: 'airliner'; lane: number; elapsedS: number }[] {
+  const out: { id: string; kind: 'airliner'; lane: number; elapsedS: number }[] = [], s = Math.floor(ms / 1000), slot = Math.floor(s / 240);
+  for (const k of [slot - 1, slot]) {
+    const p = sky.parts(k * 240000), rate = ARRIVALS[p.h];
+    if (sky.hash(k, 41) >= rate) continue;
+    const e = s - (k * 240 + Math.floor(sky.hash(k, 42) * 200));
+    if (e >= 0 && e < AIRCRAFT_VISIBLE_S) out.push({ id: `air-${k}`, kind: 'airliner', lane: Math.floor(sky.hash(k, 43) * 3), elapsedS: e });
+  }
+  return out;
+}
+
+// OFFICES — downtown tower floors are baked in eight groups (bake/scripts/lights.py). Weekdays each group switches off
+// at its own evening time and on again in the morning, over ten minutes; the last group (cleaners, security, 24-hour
+// floors) never goes dark. Weekends the first four groups stay off. (owner, 2026-11-22)
+export const OFFICE_GROUPS = 8;
+const OFFICE_OFF = [17.25, 17.75, 18.25, 18.75, 19.5, 20.5, 22.5];
+const OFFICE_ON = [7.0, 6.75, 6.5, 7.25, 7.5, 7.75, 8.0];
+export function officeFloorsLit(hour: number, dow: number): number[] {
+  const r = 1 / 12, h = ((hour % 24) + 24) % 24, weekend = dow === 0 || dow === 6;
+  return Array.from({ length: OFFICE_GROUPS }, (_, k) => {
+    if (k === OFFICE_GROUPS - 1) return 1;
+    if (weekend && k < 4) return 0;
+    return sky.ss(OFFICE_ON[k] - r, OFFICE_ON[k] + r, h) * sky.ss(OFFICE_OFF[k] + r, OFFICE_OFF[k] - r, h);
+  });
+}
+
 export const sky: any = {
   _ev: null,
   cl(x) { return Math.max(0, Math.min(1, x)); },
@@ -178,35 +249,52 @@ export const sky: any = {
   },
   vnoise(t, seed) { const i = Math.floor(t), f = t - i, u = (1 - Math.cos(f * Math.PI)) / 2; return this.hash(i, seed) * (1 - u) + this.hash(i + 1, seed) * u; },
   weather(ms, p, doy, ev) {
-    const c = this.clim(doy), key = p.y * 400 + doy, T = ms / 3600000, hr = p.h + p.mi / 60;
-    const snowDay = this.hash(key, 8) < c.snowDays / 30.4;
-    const rainy = !snowDay && this.hash(key, 1) < c.rainDays / 30.4;
+    const c = this.clim(doy), T = ms / 3600000, hr = p.h + p.mi / 60;
+    // Day-level dice (rain day, snow day, cloud offset, morning stratus, smoke, fair northerly) are rolled per Seattle
+    // date and blended with the neighbouring day from 21:00 to 03:00, so nothing switches at midnight (owner, 2026-11-22).
+    // each day's dice use that day's own month and day of year (not today's), or they disagree across a month boundary
+    const dayOf = (k) => { const t = Date.UTC(p.y, p.mo - 1, p.d + k), dt = new Date(t), y = dt.getUTCFullYear(), dy = Math.round((t - Date.UTC(y, 0, 0)) / 86400000); return { key: y * 400 + dy, mo: dt.getUTCMonth() + 1, doy: dy }; };
+    const dice = ({ key, mo, doy }) => {
+      const ck = this.clim(doy);   // that day's normals, so a day never flips between rainy and dry at midnight
+      const snowDay = this.hash(key, 8) < ck.snowDays / 30.4, rainy = !snowDay && this.hash(key, 1) < ck.rainDays / 30.4;
+      return {
+        S: snowDay ? 1 : 0, R: rainy ? 1 : 0, off: 0.5 * (this.hash(key, 4) - 0.5),
+        St: mo >= 5 && mo <= 8 && this.hash(key, 7) < 0.5 ? 1 : 0,
+        H: doy > 205 && doy < 275 && !rainy && this.hash(key, 9) < 0.11 ? 0.7 : 0,     // late-summer wildfire smoke, ~8 days a year
+        F: mo >= 5 && mo <= 9 && !rainy ? 1 : 0,                                    // fair summer day: northerly breeze
+      };
+    };
+    const today = dice(dayOf(0));
+    const w = hr >= 12 ? this.ss(21, 27, hr) : 1 - this.ss(-3, 3, hr), other = dice(dayOf(hr >= 12 ? 1 : -1));
+    const mix = (f) => today[f] * (1 - w) + other[f] * w;
+    const R = mix('R'), S = mix('S'), St = mix('St'), H = mix('H'), F = mix('F');
     const wet = this.ss(0.40, 0.72, this.vnoise(T / 3, 2));
-    const rain = rainy ? wet : 0, snowing = snowDay ? wet : 0;
-    let cloud = 1 - c.sun / 100 + 0.45 * (this.vnoise(T / 6, 3) - 0.5) + 0.5 * (this.hash(key, 4) - 0.5);
-    if (rainy) cloud = Math.max(cloud, 0.85);
-    if (snowDay) cloud = Math.max(cloud, 0.9);
-    if (rain > 0.05 || snowing > 0.05) cloud = 1;
-    if (p.mo >= 5 && p.mo <= 8 && this.hash(key, 7) < 0.5) cloud = Math.max(cloud, 0.9 * this.ss(11.5, 9.5, hr));   // marine stratus mornings
+    const rain = R * wet, snowing = S * wet;
+    let cloud = 1 - c.sun / 100 + 0.45 * (this.vnoise(T / 6, 3) - 0.5) + mix('off');
+    cloud += R * Math.max(0, 0.85 - cloud);
+    cloud += S * Math.max(0, 0.9 - cloud);
+    // overcast on rain and snow days, a little more as it pours (the handoff jumped to 1 as rain rose 0.02 -> 0.1)
+    cloud = Math.max(cloud, this.cl(R + S) * (0.85 + 0.15 * this.ss(0, 0.3, rain + snowing)));
+    // marine stratus mornings: builds in the small hours, burns off late morning (the handoff switched it on at 00:00)
+    cloud = Math.max(cloud, St * 0.9 * this.ss(1, 4, hr) * this.ss(11.5, 9.5, hr));
     cloud = this.cl(cloud);
     let fog = 0;
-    if (!snowDay && ev.rise != null && this.hash(key, 5) < c.fogDays * 1.8 / 30.4) {
+    if (today.S < 1 && ev.rise != null && this.hash(dayOf(0).key, 5) < c.fogDays * 1.8 / 30.4) {
       const sr = ev.rise / 60, burn = 2.5 + 2 * (1 - c.sun / 65);
-      fog = this.ss(sr - 6, sr - 3, hr) * this.ss(sr + burn + 1.5, sr + burn, hr) * (0.65 + 0.35 * this.hash(key, 6)) * (1 - rain);
+      fog = this.ss(Math.max(sr - 6, 0.25), sr - 3, hr) * this.ss(sr + burn + 1.5, sr + burn, hr) * (0.65 + 0.35 * this.hash(dayOf(0).key, 6)) * (1 - rain);
     }
-    // late-summer wildfire smoke: some hazy days in August and September
-    const haze = (doy > 205 && doy < 275 && !rainy && this.hash(key, 9) < 0.11) ? 0.7 : 0;   // about 8 heavy-smoke days a year
+    const haze = H;
     const sr = ev.rise != null ? ev.rise / 60 : 7.5, peak = 15;
     let shape;
     if (hr >= sr && hr <= peak) shape = (1 - Math.cos(Math.PI * (hr - sr) / (peak - sr))) / 2;
     else { const span = 24 - peak + sr, x = ((hr - peak + 24) % 24) / span; shape = (1 + Math.cos(Math.PI * x)) / 2; }
-    let temp = c.lo + (c.hi - c.lo) * shape;
-    if (snowDay) temp = 28 + 5 * shape;
-    // wind: storms blow from the south; fair summer days from the north. Cloud speed only changes every six hours.
-    const summerFair = p.mo >= 5 && p.mo <= 9 && !rainy;
-    const speed = this.cl(0.15 + (rainy ? 0.3 : 0) + 0.4 * this.vnoise(T / 5, 11) + ((p.mo >= 11 || p.mo <= 2) ? 0.1 : 0));
-    const speedQ = this.cl(0.2 + 0.55 * this.hash(key * 4 + Math.floor(hr / 6), 12) + (rainy ? 0.2 : 0));
-    return { cloud, rain, fog, temp, snowCover: snowDay ? 1 : 0, snowing, haze, wind: { speed, speedQ, dir: summerFair ? -1 : 1 } };
+    const temp = (c.lo + (c.hi - c.lo) * shape) * (1 - S) + (28 + 5 * shape) * S;
+    // Wind: storms blow from the south, fair summer days from the north. flow is signed (+1 southerly, -1 northerly) and
+    // passes through calm when the wind turns; speedQ (cloud speed) drifts smoothly instead of stepping every 6 hours.
+    const speed = this.cl(0.15 + 0.3 * R + 0.4 * this.vnoise(T / 5, 11) + ((p.mo >= 11 || p.mo <= 2) ? 0.1 : 0));
+    const speedQ = this.cl(0.2 + 0.55 * this.vnoise(T / 6, 12) + 0.2 * R);
+    const flow = 1 - 2 * F;
+    return { cloud, rain, fog, temp, snowCover: S, snowing, haze, wind: { speed, speedQ, flow, dir: flow >= 0 ? 1 : -1 } };
   },
   windowsAt(hr) {
     // share of windows lit: offices + homes in the evening, most homes dark after midnight, early risers before dawn

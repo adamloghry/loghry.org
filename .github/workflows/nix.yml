@@ -40,6 +40,9 @@ jobs:
       - name: Playwright acceptance (all states in Chromium, WebKit, Firefox; controls, time zones, axe, contrast)
         run: nix develop --impure --command node scripts/verify.mjs
 
+      - name: Visual regression (key moments vs tests/visual/)
+        run: nix develop --impure --command node scripts/visual.mjs
+
       - name: Bombadil properties
         run: nix develop --impure --command npm run test:ui
 
@@ -51,4 +54,5 @@ jobs:
           path: |
             tmp/shots/
             tmp/bombadil-*/
+            tmp/visual/
           if-no-files-found: ignore

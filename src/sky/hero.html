@@ -37,6 +37,7 @@
 </sc-if>
 
 <sc-if value="{{show.lights}}">
+<sc-for list="{{towers}}" as="t"><img class="lk-plate" src="{{t.src}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: {{t.opacity}}"></sc-for>
 <sc-if value="{{show.holiday}}"><picture><source type="image/avif" srcset="{{a.holiday_avif}}"><img class="lk-plate" src="{{a.holiday}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; opacity: {{holidayOpacity}}"></picture></sc-if>
 <sc-if value="{{show.bloom}}"><img class="lk-plate" src="{{a.bloom}}" alt="" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; opacity: {{bloomOpacity}}"></sc-if>
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; background: radial-gradient(38% 16% at 50% 13%, rgba(255,176,120,.3), rgba(255,176,120,0)); opacity: {{skyGlowOpacity}}"></div>
@@ -71,6 +72,10 @@
 <svg viewBox="-8 -8 16 16" width="16" height="16" style="position: absolute; left: -8px; top: -8px; overflow: visible; filter: drop-shadow(0 2px 2px rgba(0,0,0,.45))"><path d="M-6 0 L6 0 M1.5 -6 L1.5 6 M-5 -2 L-5 2" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"></path></svg>
 </span>
 </sc-if>
+<sc-if value="{{show.ferries}}">
+<sc-for list="{{ferries}}" as="f"><span class="lk-car" aria-hidden="true" style="{{f.style}}"></span></sc-for>
+</sc-if>
+<sc-for list="{{aircraft}}" as="a"><span class="lk-car" aria-hidden="true" style="{{a.style}}"><span class="lk-strobe"></span><span class="lk-navlight"></span></span></sc-for>
 <sc-if value="{{show.dayCars}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{dayCarsOpacity}}">
 <sc-for list="{{dayCars}}" as="c">
@@ -84,7 +89,6 @@
 <span class="lk-car" style="{{c.style}}" data-off="{{c.off}}"></span>
 </sc-for>
 </div>
-<span class="lk-car" aria-hidden="true" style="{{ferryStyle}}"></span>
 </sc-if>
 <sc-if value="{{show.beacons}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; opacity: {{beaconOpacity}}">
@@ -114,14 +118,14 @@
 
 <sc-if value="{{show.cloud1}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{cloud1Opacity}}">
-<div class="lk-pan" style="position: absolute; left: 0; top: -6%; width: 200%; height: 70%; animation-duration: {{cloudDur1}}; animation-direction: {{cloudDir}}">
+<div data-cloud="1" style="position: absolute; left: 0; top: -6%; width: 200%; height: 70%; will-change: transform">
 <div class="lk-cloud1 lk-fade" style="position: absolute; inset: 0; background-color: {{cloudColor}}"></div>
 </div>
 </div>
 </sc-if>
 <sc-if value="{{show.cloud2}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{cloud2Opacity}}">
-<div class="lk-pan-b" style="position: absolute; left: 0; top: 30%; width: 200%; height: 80%; animation-duration: {{cloudDur2}}; animation-direction: {{cloudDir}}">
+<div data-cloud="2" style="position: absolute; left: 0; top: 30%; width: 200%; height: 80%; will-change: transform">
 <div class="lk-cloud2 lk-fade" style="position: absolute; inset: 0; background-color: {{cloudColor}}"></div>
 </div>
 </div>
@@ -129,7 +133,7 @@
 
 <sc-if value="{{show.rain}}">
 <div class="lk-fade" aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; opacity: {{veilOpacity}}">
-<div class="lk-veilpan" style="position: absolute; left: 0; top: 0; width: 200%; height: 100%; animation-direction: {{cloudDir}}">
+<div class="lk-veilpan" style="position: absolute; left: 0; top: 0; width: 200%; height: 100%; animation-direction: {{veilDir}}">
 <div class="lk-rv lk-fade" style="position: absolute; inset: 0; background-color: {{veilColor}}"></div>
 </div>
 </div>

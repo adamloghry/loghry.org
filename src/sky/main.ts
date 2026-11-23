@@ -19,6 +19,7 @@ mount(hero, heroTemplate, Hero, {
   siteUrl: location.origin + location.pathname,
   ...parseHooks(location.hash),
   box: () => ({ w: hero.clientWidth, h: hero.clientHeight }),
+  host: hero,
 });
 alm = mount(almanac, almanacTemplate, Almanac, common);
 addEventListener('hashchange', () => location.reload());

@@ -29,6 +29,8 @@ the baked layers or their tuning without the owner.
 - `scripts/` - `verify-static.mjs` (no-browser checks on `dist/`), `verify.mjs` (Playwright acceptance),
   `states.mjs` (the states it renders), `serve.mjs` (test server that applies `_headers` and 404s like
   Cloudflare), with `*.test.mjs` for the first and last.
+- `tests/visual/` - visual baselines (half-size PNGs) for `scripts/visual.mjs`. `verify.mjs` `perf` is the performance budget
+  (CLS, LCP, bytes, requests, script share, long tasks, frame rates).
 - `docs/handoff/` - the handoff README and its 21 reference screenshots, verbatim. Do not edit.
 - `nix/` - `checks.nix`, `treefmt.nix`. `flake.nix` - package, checks, apps (`bake`, `deploy`), devenv shell.
 - `tmp/`, `.superpowers/`, `.claude/` - scratch, gitignored, never committed.
@@ -42,6 +44,7 @@ the baked layers or their tuning without the owner.
 | Build | `npm run build` (runs `npm test` and the upkeep check first, via `prebuild`) or `nix build` |
 | Static checks | `node scripts/verify-static.mjs [dir]` |
 | Browser acceptance | `npm run build && npm run verify` (filters: `node scripts/verify.mjs controls axe`) |
+| Visual regression | `npm run build && npm run test:visual` (8 key moments vs `tests/visual/`; after an intended change: `node scripts/visual.mjs --update` and commit the PNGs) |
 | Properties | `npm run test:ui` (Bombadil, 60 s x 3 runs) or `node tests/ui/run.mjs 5m` before a release |
 | Everything non-browser | `nix flake check --impure` |
 | Format | `nix fmt` (nix/json/yaml only; handoff sources keep their delivered formatting) |
@@ -64,6 +67,9 @@ ships WebKit/Firefox for Playwright on Linux only); Bombadil uses Chromium. All 
   browser clock and checks the live clock and almanac date from Tokyo and UTC.
 - **Same sky for everyone.** Weather is a hash of Seattle date and hour weighted by Sea-Tac 1991-2020 normals; it is
   typical, not a forecast.
+- **No Blue Angels, ever** (owner): no airshow or display flying, no Seafair event, only scheduled traffic
+  (`aircraftAt` draws airliners only). `tests/unit/schedules.test.ts` guards it.
+- **No Mount Rainier**: it is ~6 degrees left of the frame (see the spec); "the mountain is out" is only a status remark.
 - **Fixed camera**, **no sound**, **no named relatives or dates**. The owner's own name (humans.txt) is fine.
 - Nothing shipped mentions the retired `akl.io`, analytics, or keybase (`S-BANNED`).
 
@@ -74,6 +80,7 @@ ships WebKit/Firefox for Playwright on Linux only); Bombadil uses Chromium. All 
 | Calendar events | `sky.calendar` in `src/sky/model.ts`; bump `CALENDAR_REVIEWED` | Yearly; `tests/upkeep.mjs` warns |
 | Weather normals | `NORMALS`, `NORMALS_PERIOD` in `model.ts` | When NOAA publishes 2001-2030 (~2031) |
 | Photo credit | `SITE.photo` in `src/site.ts` | Only if the photo changes |
+| Ferry, seaplane and arrival patterns (typical, not timetables) | `FERRY_ROUTES`, `seaplaneAt`, `ARRIVALS` in `model.ts`; bump `SCHEDULES_REVIEWED` | Yearly; `tests/upkeep.mjs` warns |
 
 ## Deploy
 
